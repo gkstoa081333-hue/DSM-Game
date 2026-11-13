@@ -14,9 +14,9 @@ const BOSS={
  [D1]:{e:"📚",n:"DSM 대사서"},[D2]:{e:"🔮",n:"스펙트럼 예언자"},[D3]:{e:"🌗",n:"달의 수호자"},
  [D4]:{e:"🛡️",n:"긴장의 문지기"},[D5]:{e:"🎭",n:"가면의 기사"},[D6]:{e:"⏳",n:"기억의 시계공"},
  [D7]:{e:"⚗️",n:"약물 연금술사"},[D8]:{e:"⚖️",n:"위기의 파수꾼"},[D9]:{e:"🧠",n:"무의식의 현자"},
- [D10]:{e:"🌙",n:"꿈의 파수꾼"},[D11]:{e:"📜",n:"법조문 수호자"}
+ [D10]:{e:"🌙",n:"꿈의 파수꾼"},[D11]:{e:"📜",n:"법조문 수호자"},[D12]:{e:"🔤",n:"약어 해독가"}
 };
-const DOMS=[D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11];
+const DOMS=[D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12];
 const CORE=[D2,D3,D4,D6,D7,D11];
 
 // ===================== 저장 =====================
@@ -108,7 +108,7 @@ function lobby(){
     ${t<0?`<div class="rk-sub">레벨테스트로 지금 실력을 확인해 보세요</div>`
       :`<div class="rk-sub">레벨테스트 ${L.score}점${delta!=null?` <b style="color:${delta>=0?"var(--ok)":"var(--ng)"}">(${delta>=0?"+":""}${delta})</b>`:""} · ${L.date||""}${S.dojo.final?" · 최종 보스 격파":""}</div>`}
     <div class="ladder">${TIERS.map((x,k)=>`<span class="${k===t?"on":k<t?"done":""}" style="--tc:${x.c}">${x.e}<small>${x.n}</small></span>`).join("")}</div>
-    ${t===CAP&&!S.dojo.final?`<p class="muted" style="margin:10px 0 0">🏖️ 퇴사는 도장깨기 11관문을 모두 깨고 최종 보스를 이겨야 얻어요</p>`:""}
+    ${t===CAP&&!S.dojo.final?`<p class="muted" style="margin:10px 0 0">🏖️ 퇴사는 도장깨기 ${DOMS.length}관문을 모두 깨고 최종 보스를 이겨야 얻어요</p>`:""}
     <div class="install" id="inst"></div>
   </div>
   <div class="modes">
@@ -128,7 +128,7 @@ function lobby(){
      <ul class="rules">
       <li><b>레벨테스트:</b> ${LT_N}문항. 영역마다 중간 난이도(★★)로 시작해서, 맞히면 더 어려운 문제, 틀리면 쉬운 문제가 나와요. 어려운 문제일수록 점수 비중이 커요.</li>
       <li><b>등급:</b> 레벨테스트 ${LT_CUT[1]}점↑ 수련준비생, ${LT_CUT[2]}점↑ 수련생, ${LT_CUT[3]}점↑ 전문요원. 다시 보면 최신 결과로 바뀌어요.</li>
-      <li><b>도장깨기:</b> 영역마다 ${DOJO_N}문제 중 ${DOJO_PASS}개를 맞히면 관문 격파. 11관문을 다 깨면 최종 보스 '퇴사 시험'(${FINAL_N}문제 중 ${FINAL_PASS}개)에 도전할 수 있고, 통과하면 퇴사 등급이에요.</li>
+      <li><b>도장깨기:</b> 영역마다 ${DOJO_N}문제 중 ${DOJO_PASS}개를 맞히면 관문 격파. ${DOMS.length}관문을 다 깨면 최종 보스 '퇴사 시험'(${FINAL_N}문제 중 ${FINAL_PASS}개)에 도전할 수 있고, 통과하면 퇴사 등급이에요.</li>
       <li><b>랭킹:</b> 처음 정한 닉네임으로 등급·도장깨기·타임어택·생존 기록이 동료들에게 공개돼요. 학습 기록(푼 문제·오답)은 공개되지 않아요.</li>
       <li><b>모름</b>을 누르면 바로 정답과 해설을 볼 수 있어요. 찍는 것보다 정직하게 누르는 게 진짜 실력 확인에 좋아요.</li>
      </ul>
@@ -243,7 +243,7 @@ function dojoMap(){
     <p class="muted" style="margin:6px 0 0">관문마다 ${DOJO_N}문제 중 ${DOJO_PASS}개를 맞히면 격파. 3개 틀리면 그 자리에서 탈락이에요.</p></div>
    <div class="gates">${DOMS.map(d=>{const b=BOSS[d],ok=cl.has(d),best=(S.dojo.best||{})[d];return `<button class="gate ${ok?"clear":""}" data-dj="${esc(d)}"><span class="ge">${b.e}</span><b>${b.n}</b><small>${d}</small><small>${ok?"✅ 격파":best!=null?`최고 ${best}/${DOJO_N}`:"도전 전"}</small></button>`}).join("")}</div>
    <div class="card finalboss ${all?"open":""}"><div style="font-size:2.6rem">🏖️</div><b>최종 보스: 퇴사 시험</b>
-     <p class="muted">${S.dojo.final?"이미 격파했어요. 축하해요, 퇴사입니다 🎉":all?`전 영역 ${FINAL_N}문제 중 ${FINAL_PASS}개를 맞히면 퇴사 등급!`:`11관문을 모두 깨면 열려요 (${DOMS.length-cl.size}개 남음)`}</p>
+     <p class="muted">${S.dojo.final?"이미 격파했어요. 축하해요, 퇴사입니다 🎉":all?`전 영역 ${FINAL_N}문제 중 ${FINAL_PASS}개를 맞히면 퇴사 등급!`:`${DOMS.length}관문을 모두 깨면 열려요 (${DOMS.length-cl.size}개 남음)`}</p>
      ${all?`<button class="btn promo-btn" id="final">${S.dojo.final?"다시 도전":"도전하기"}</button>`:""}</div>
    <div class="nav" style="justify-content:center"><button class="btn ghost" id="lb">로비로</button></div>`;
   on("lb",lobby);on("final",startFinal);app.querySelectorAll("[data-dj]").forEach(b=>b.onclick=()=>startDojo(b.dataset.dj));goTop();
@@ -273,7 +273,7 @@ function djEnd(){
     ${fin&&win?emblem(TOP,120):`<div style="font-size:3.4rem">${win?"💥":"💀"}</div>`}
     <h1>${fin?(win?"퇴사 시험 통과! 🏖️":"퇴사는 아직…"):(win?`${G.boss.n} 격파!`:"관문 돌파 실패")}</h1>
     <p>${G.ok}개 정답 · ${G.ng}개 오답</p>
-    <p class="muted">${fin?(win?(wasFinal?"다시 한 번 증명했어요.":"최고 등급 '퇴사'를 얻었어요. 고생 많았어요!"):`${FINAL_PASS}개를 맞혀야 해요. 약한 영역을 일반 모드로 다지고 다시 와요.`):(win?(all?"11관문을 모두 깼어요! 최종 보스가 열렸어요.":"도장깨기 지도에 격파 표시가 생겼어요."):"일반 모드에서 이 영역을 연습하고 다시 도전해 보세요.")}</p>
+    <p class="muted">${fin?(win?(wasFinal?"다시 한 번 증명했어요.":"최고 등급 '퇴사'를 얻었어요. 고생 많았어요!"):`${FINAL_PASS}개를 맞혀야 해요. 약한 영역을 일반 모드로 다지고 다시 와요.`):(win?(all?`${DOMS.length}관문을 모두 깼어요!`+" 최종 보스가 열렸어요.":"도장깨기 지도에 격파 표시가 생겼어요."):"일반 모드에서 이 영역을 연습하고 다시 도전해 보세요.")}</p>
     <div class="nav" style="justify-content:center;gap:8px;flex-wrap:wrap">
      ${!win&&!fin?`<button class="btn" id="pr">이 영역 연습하기</button>`:""}<button class="btn ${win?"":"ghost"}" id="map">도장깨기 지도</button><button class="btn ghost" id="lb">로비로</button></div></div>`;
   on("pr",()=>startPractice(G.d));on("map",dojoMap);on("lb",lobby);
