@@ -8,7 +8,7 @@ const TIERS=[
 ];
 const TOP=4, CAP=3;                 // 레벨테스트로는 전문요원(3)까지, 퇴사(4)는 최종 보스로만
 const LT_CUT=[0,40,60,75];          // 레벨테스트 점수 → 미생/수련준비생/수련생/전문요원
-const LT_N=30, PR_N=10, DOJO_N=10, DOJO_PASS=8, FINAL_N=40, FINAL_PASS=32, DUEL_N=10;
+const LT_N=30, PR_N=10, DOJO_N=10, DOJO_PASS=8, FINAL_N=40, FINAL_PASS=32;
 // 영역별 관문 보스 (질환이 아니라 '시험 관문'을 지키는 캐릭터)
 const BOSS={
  [D1]:{e:"📚",n:"DSM 대사서"},[D2]:{e:"🔮",n:"스펙트럼 예언자"},[D3]:{e:"🌗",n:"달의 수호자"},
@@ -115,7 +115,7 @@ function lobby(){
     <button class="mode main" id="m-lt"><span class="mi">🎯</span><b>레벨테스트</b><small>${LT_N}문항 · 맞히면 어려워지는 적응형 · 결과로 등급 결정</small></button>
     <button class="mode" id="m-pr"><span class="mi">📝</span><b>일반 모드</b><small>영역 골라 ${PR_N}문항씩 연습</small></button>
     <button class="mode" id="m-dj"><span class="mi">🏯</span><b>도장깨기</b><small>${cleared} / ${DOMS.length} 관문 ${S.dojo.final?"· 퇴사 완료":""}</small></button>
-    <button class="mode" id="m-du"><span class="mi">⚔️</span><b>1:1 대결</b><small>동료와 같은 ${DUEL_N}문제 · ${S.rec.duelW}승 ${S.rec.duelL}패</small></button>
+    <button class="mode" id="m-rk"><span class="mi">🏆</span><b>랭킹</b><small>${S.nick?esc(S.nick)+"님의 순위 보기":"동료들과 기록 겨루기"}</small></button>
     <button class="mode" id="m-ta"><span class="mi">⏱️</span><b>타임어택</b><small>20문항 · 20초 · 최고 ${S.rec.ta}점</small></button>
     <button class="mode" id="m-surv"><span class="mi">❤️</span><b>생존 모드</b><small>하트 3개 · 최고 ${S.rec.surv}문제</small></button>
     <button class="mode" id="m-rv" ${wrong.size?"":"disabled"}><span class="mi">📕</span><b>오답 복습</b><small>오답노트 ${wrong.size}문항</small></button>
@@ -129,7 +129,7 @@ function lobby(){
       <li><b>레벨테스트:</b> ${LT_N}문항. 영역마다 중간 난이도(★★)로 시작해서, 맞히면 더 어려운 문제, 틀리면 쉬운 문제가 나와요. 어려운 문제일수록 점수 비중이 커요.</li>
       <li><b>등급:</b> 레벨테스트 ${LT_CUT[1]}점↑ 수련준비생, ${LT_CUT[2]}점↑ 수련생, ${LT_CUT[3]}점↑ 전문요원. 다시 보면 최신 결과로 바뀌어요.</li>
       <li><b>도장깨기:</b> 영역마다 ${DOJO_N}문제 중 ${DOJO_PASS}개를 맞히면 관문 격파. 11관문을 다 깨면 최종 보스 '퇴사 시험'(${FINAL_N}문제 중 ${FINAL_PASS}개)에 도전할 수 있고, 통과하면 퇴사 등급이에요.</li>
-      <li><b>1:1 대결:</b> 대결 코드를 동료에게 보내면 같은 ${DUEL_N}문제를 풀어요. 정답 수가 많은 쪽이 이기고, 같으면 더 빨리 푼 쪽이 이겨요.</li>
+      <li><b>랭킹:</b> 처음 정한 닉네임으로 등급·도장깨기·타임어택·생존 기록이 동료들에게 공개돼요. 학습 기록(푼 문제·오답)은 공개되지 않아요.</li>
       <li><b>모름</b>을 누르면 바로 정답과 해설을 볼 수 있어요. 찍는 것보다 정직하게 누르는 게 진짜 실력 확인에 좋아요.</li>
      </ul>
      <p class="muted">기록은 이 기기에 먼저 저장되고, 로그인이 되어 있으면 서버와 동기화돼요.</p>
@@ -138,7 +138,7 @@ function lobby(){
     </details>
   </div>`;
   showInstallHint();refreshAccountCard();
-  on("m-lt",startLT);on("m-pr",practiceMenu);on("m-dj",dojoMap);on("m-du",duelMenu);on("m-ta",startTA);on("m-surv",startSurv);on("m-rv",startReview);on("m-cx",showCodex);
+  on("m-lt",startLT);on("m-pr",practiceMenu);on("m-dj",dojoMap);on("m-rk",()=>rankingView());on("m-ta",startTA);on("m-surv",startSurv);on("m-rv",startReview);on("m-cx",showCodex);
   on("exp",async e=>{const code=btoa(unescape(encodeURIComponent(JSON.stringify(data()))));
     document.getElementById("bk").innerHTML=`<textarea readonly>${code}</textarea>`;try{await navigator.clipboard.writeText(code);e.target.textContent="복사됐어요 ✓"}catch(_){e.target.textContent="아래 코드를 길게 눌러 복사하세요"}});
   on("imp",()=>{document.getElementById("bk").innerHTML=`<textarea id="bkin" placeholder="다른 기기에서 복사한 백업 코드를 붙여넣으세요"></textarea><div class="nav" style="justify-content:flex-start"><button class="btn tiny" id="bkgo">불러오기</button></div>`;
@@ -281,65 +281,44 @@ function djEnd(){
   goTop();
 }
 
-// ===================== ⚔️ 1:1 대결 =====================
-function duelMenu(){
+// ===================== 🏷️ 닉네임 정하기 =====================
+function nickSetup(change){
   stopAll();
-  if(!ACC.ready){app.innerHTML=`<div class="card hero"><div style="font-size:3rem">⚔️</div><h1>1:1 대결</h1><p class="muted">${ACC.err?esc(ACC.err):"서버에 연결하는 중이에요. 잠시 후 다시 눌러주세요."}</p><button class="btn ghost" id="lb">로비로</button></div>`;on("lb",lobby);return}
-  app.innerHTML=`<div class="card hero"><div style="font-size:3rem">⚔️</div><h1>1:1 대결</h1>
-    <p class="muted">같은 ${DUEL_N}문제를 각자 풀어요. 정답이 많은 쪽이 이기고, 같으면 더 빨리 푼 쪽이 이겨요.</p>
-    <label class="muted" for="nick">상대에게 보일 닉네임 (실명 대신 별명 추천)</label>
-    <input id="nick" maxlength="12" value="${esc(S.nick)}" placeholder="예: 수련왕">
-    <div class="nav" style="justify-content:center;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn" id="mk">대결 만들기</button></div>
-    <div class="joinrow"><input id="code" maxlength="6" placeholder="받은 코드 6자리" autocapitalize="characters"><button class="btn" id="jn">참가</button></div>
-    <p class="warn" id="dmsg"></p>
-    <button class="btn ghost" id="lb">로비로</button></div>`;
-  const nick=()=>{const v=document.getElementById("nick").value.trim().slice(0,12);if(!v){document.getElementById("dmsg").textContent="닉네임을 입력해 주세요";return null}if(v!==S.nick){S.nick=v;save()}return v};
-  on("lb",lobby);
-  on("mk",async e=>{const n=nick();if(!n)return;e.target.disabled=true;try{const code=await createDuel(n);duelWait(code)}catch(err){e.target.disabled=false;document.getElementById("dmsg").textContent="대결을 만들지 못했어요. 다시 시도해 주세요."}});
-  on("jn",async e=>{const n=nick();if(!n)return;const code=document.getElementById("code").value.trim().toUpperCase();if(code.length!==6){document.getElementById("dmsg").textContent="코드 6자리를 입력해 주세요";return}
-    e.target.disabled=true;const res=await joinDuel(code,n);if(res!=="ok"){e.target.disabled=false;document.getElementById("dmsg").textContent=res;return}duelPlay(code,"guest")});
+  app.innerHTML=`<div class="card hero"><div style="font-size:3rem">🏷️</div><h1>${change?"닉네임 바꾸기":"닉네임을 정해 주세요"}</h1>
+    <p class="muted">랭킹에 이 닉네임으로 기록이 남아요. 실명 대신 별명을 추천해요.</p>
+    <input id="nick" maxlength="12" value="${esc(S.nick)}" placeholder="예: 수련왕, 퇴사가꿈" autocomplete="off">
+    <p class="muted" style="font-size:.8rem">한글·영문·숫자·밑줄(_) 2~12자 · 다른 사람과 겹칠 수 없어요</p>
+    <p class="warn" id="nmsg"></p>
+    <div class="nav" style="justify-content:center;gap:8px"><button class="btn big" id="nsave">${change?"바꾸기":"시작하기"}</button>${change?`<button class="btn ghost" id="lb">취소</button>`:""}</div></div>`;
+  const go=async e=>{const v=document.getElementById("nick").value.trim();e&&e.target&&(e.target.disabled=true);const r=await claimNick(v);
+    if(r==="ok"){floatText(`👋 ${v}님!`,"#ffc94d");lobby()}else{document.getElementById("nmsg").textContent=r;const b=document.getElementById("nsave");if(b)b.disabled=false}};
+  on("nsave",go);on("lb",lobby);
+  document.getElementById("nick").addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+  goTop();
 }
-function duelWait(code){
-  app.innerHTML=`<div class="card hero"><div style="font-size:3rem">⏳</div><h1>상대를 기다리는 중</h1>
-    <p class="muted">이 코드를 동료에게 보내주세요</p><div class="code">${code}</div>
-    <div class="nav" style="justify-content:center;gap:8px"><button class="btn" id="cc">코드 복사</button><button class="btn ghost" id="cx">취소</button></div></div>`;
-  on("cc",async e=>{try{await navigator.clipboard.writeText(`DSM 랭크전 1:1 대결 코드: ${code}\n${location.origin+location.pathname}`);e.target.textContent="복사됐어요 ✓"}catch(_){e.target.textContent=code}});
-  on("cx",lobby);
-  unsub=watchDuel(code,d=>{if(d&&d.guest){stopAll();duelPlay(code,"host")}});
-}
-function duelPlay(code,role){
-  stopAll();const other=role==="host"?"guest":"host";
-  G={mode:"du",code,role,other,qs:null,i:0,score:0,ans:[],t0:Date.now(),opp:null,me:null,closed:false};
-  unsub=watchDuel(code,d=>{if(!d)return;G.opp=d[other];G.me=d[role];if(!G.qs){G.qs=d.qids.map(toQ);duQ()}else if(G.finished)duResult();else duHead()});
-}
-function duHeadHTML(){
-  const o=G.opp||{},on_=(o.ans||[]).length;
-  return `<div class="plrow"><span class="score">⚔️ 나 ${G.score}</span><span class="muted">${G.i+1} / ${G.qs.length}</span><span class="score">${esc(o.nick||"상대")} ${o.score||0}</span></div>
-   <div class="duelbar"><div><i style="width:${G.ans.length/G.qs.length*100}%"></i></div><div class="opp"><i style="width:${on_/G.qs.length*100}%"></i></div></div>`;
-}
-function duHead(){const h=document.getElementById("dhead");if(h)h.innerHTML=duHeadHTML()}
-function duQ(){
-  const q=G.qs[G.i];
-  app.innerHTML=`<div class="arena" id="dhead">${duHeadHTML()}</div>`+qCard(q,q.r,{noIdk:true,nextLabel:G.i===G.qs.length-1?"제출하기":"다음 →"});
-  bindQ(async k=>{if(q.r)return;q.pick=k;q.r=judge(q,k);G.ans.push(q.r==="ok"?1:0);if(q.r==="ok")G.score++;else shake();duQ();
-      try{await duelUpdate(G.code,G.role,{ans:G.ans,score:G.score})}catch(_){}},
-    async()=>{if(G.i<G.qs.length-1){G.i++;duQ();goTop();return}
-      G.finished=true;const ms=Date.now()-G.t0;try{await duelUpdate(G.code,G.role,{ans:G.ans,score:G.score,done:true,ms})}catch(_){}duResult()});
-}
-function duResult(){
-  const me=G.me||{},o=G.opp||{};
-  if(!o.done){app.innerHTML=`<div class="card hero"><div style="font-size:3rem">⏳</div><h1>${G.score} / ${G.qs.length}</h1><p class="muted">${esc(o.nick||"상대")}님이 아직 푸는 중이에요 (${(o.ans||[]).length}/${G.qs.length})</p><button class="btn ghost" id="lb">로비로 (결과는 나중에 못 봐요)</button></div>`;on("lb",lobby);return}
-  if(!me.done)return;
-  const res=me.score!==o.score?(me.score>o.score?"W":"L"):(me.ms===o.ms?"D":(me.ms<o.ms?"W":"L"));
-  if(!G.closed){G.closed=true;S.rec[res==="W"?"duelW":res==="L"?"duelL":"duelD"]++;save()}
-  const sec=x=>Math.round((x||0)/1000)+"초";
-  app.innerHTML=`<div class="card hero ${res==="W"?"celebrate":""}"><div style="font-size:3.4rem">${res==="W"?"🏆":res==="L"?"🥲":"🤝"}</div>
-    <h1>${res==="W"?"승리!":res==="L"?"패배":"무승부"}</h1>
-    <div class="vs"><div><b>${esc(me.nick||"나")}</b><span>${me.score}</span><small>${sec(me.ms)}</small></div><div class="x">VS</div><div><b>${esc(o.nick||"상대")}</b><span>${o.score}</span><small>${sec(o.ms)}</small></div></div>
-    <p class="muted">통산 ${S.rec.duelW}승 ${S.rec.duelL}패 ${S.rec.duelD}무</p>
-    <div class="nav" style="justify-content:center;gap:8px"><button class="btn" id="re">새 대결</button><button class="btn ghost" id="lb">로비로</button></div></div>
-    <div class="card"><b>문제 다시 보기</b>${G.qs.map(q=>`<div class="wrong">${q.r==="ok"?"✔":"✖"} ${esc(q.q)}<br><span class="a">정답: ${esc(q.o[q.a])}</span><br><span class="muted">${esc(q.e)}</span></div>`).join("")}</div>`;
-  stopAll();on("re",duelMenu);on("lb",lobby);goTop();
+
+// ===================== 🏆 랭킹 =====================
+const RANK_TABS=[{k:"rk",n:"등급",f:r=>r.score<0?"-":`${TIERS[r.tier]?TIERS[r.tier].e:""} ${tierName(r.tier)} · ${r.score}점`},
+ {k:"dk",n:"도장깨기",f:r=>r.final?"🏖️ 퇴사 완료":`${r.dojo} / ${DOMS.length} 관문`},
+ {k:"ta",n:"타임어택",f:r=>`${r.ta}점`},{k:"surv",n:"생존",f:r=>`${r.surv}문제`}];
+async function rankingView(tab){
+  stopAll();tab=tab||"rk";
+  if(!ACC.ready){app.innerHTML=`<div class="card hero"><div style="font-size:3rem">🏆</div><h1>랭킹</h1><p class="muted">${ACC.err?esc(ACC.err):"서버에 연결하는 중이에요. 잠시 후 다시 눌러주세요."}</p><button class="btn ghost" id="lb">로비로</button></div>`;on("lb",lobby);return}
+  if(!S.nick)return nickSetup();
+  const T=RANK_TABS.find(x=>x.k===tab);
+  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">🏆 랭킹</span><span class="muted">나: ${esc(S.nick)}</span></div>
+    <div class="tabs">${RANK_TABS.map(x=>`<button class="tab ${x.k===tab?"on":""}" data-tab="${x.k}">${x.n}</button>`).join("")}</div></div>
+    <div class="card" id="rlist"><p class="muted">불러오는 중…</p></div>
+    <div class="nav" style="justify-content:center"><button class="btn ghost" id="lb">로비로</button></div>`;
+  on("lb",lobby);app.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>rankingView(b.dataset.tab));
+  try{await pushBoard()}catch(_){}
+  let rows;try{rows=(await fetchBoard(tab)).filter(r=>tab!=="rk"||r.score>=0)}catch(e){document.getElementById("rlist").innerHTML=`<p class="warn">랭킹을 불러오지 못했어요.</p>`;return}
+  const me=ACC.user.uid,mine=rows.findIndex(r=>r.uid===me);
+  const medal=i=>["🥇","🥈","🥉"][i]||`${i+1}`;
+  document.getElementById("rlist").innerHTML=(rows.length?rows.map((r,i)=>`<div class="rrow ${r.uid===me?"me":""}"><span class="rno">${medal(i)}</span><span class="rnick">${esc(r.nick)}</span><span class="rval">${T.f(r)}</span></div>`).join("")
+    :`<p class="muted">아직 기록이 없어요. 첫 기록의 주인공이 되어 보세요!</p>`)+
+    (mine<0&&rows.length>=50?`<p class="muted" style="margin-top:10px">내 기록은 50위 밖이에요.</p>`:"")+
+    (tab==="rk"&&S.level.score==null?`<p class="muted" style="margin-top:10px">레벨테스트를 보면 등급 랭킹에 올라가요.</p>`:"");
 }
 
 // ===================== ❤️ 생존 모드 =====================

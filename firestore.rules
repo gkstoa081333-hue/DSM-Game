@@ -19,34 +19,24 @@ service cloud.firestore {
         && request.resource.data.note is string && request.resource.data.note.size() <= 500;
       allow read, update, delete: if false;
     }
-    // 1:1 대결: 코드(6자리)를 아는 로그인 사용자만 읽기, 각자 자기 칸만 수정
-    match /matches/{code} {
+    // 닉네임 선점: 이름 문서 하나에 주인 uid 하나 (중복 방지)
+    match /names/{name} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null && code.size() == 6
-        && request.resource.data.keys().hasOnly(['host','guest','qids','createdAt'])
-        && request.resource.data.host.uid == request.auth.uid
-        && request.resource.data.host.nick is string && request.resource.data.host.nick.size() <= 12
-        && request.resource.data.guest == null
-        && request.resource.data.qids.size() == 10;
-      allow update: if request.auth != null
-        && request.resource.data.keys().hasOnly(['host','guest','qids','createdAt'])
-        && request.resource.data.qids == resource.data.qids
-        && (
-          (resource.data.guest == null
-            && request.resource.data.host == resource.data.host
-            && request.resource.data.guest.uid == request.auth.uid
-            && resource.data.host.uid != request.auth.uid
-            && request.resource.data.guest.nick is string && request.resource.data.guest.nick.size() <= 12)
-          || (resource.data.host.uid == request.auth.uid
-            && request.resource.data.host.uid == request.auth.uid
-            && request.resource.data.host.nick == resource.data.host.nick
-            && request.resource.data.guest == resource.data.guest)
-          || (resource.data.guest != null && resource.data.guest.uid == request.auth.uid
-            && request.resource.data.guest.uid == request.auth.uid
-            && request.resource.data.guest.nick == resource.data.guest.nick
-            && request.resource.data.host == resource.data.host)
-        );
-      allow delete: if false;
+      allow create: if request.auth != null && name.size() >= 2 && name.size() <= 12
+        && request.resource.data.keys().hasOnly(['uid']) && request.resource.data.uid == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
+    // 랭킹: 누구나(로그인 사용자) 읽기, 본인 줄만 쓰기, 닉네임은 내가 선점한 것만
+    match /board/{uid} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['nick','tier','score','rk','dojo','final','dk','ta','surv','tests','updatedAt'])
+        && request.resource.data.nick is string && request.resource.data.nick.size() <= 12
+        && get(/databases/$(database)/documents/names/$(request.resource.data.nick.lower())).data.uid == request.auth.uid
+        && request.resource.data.tier is int && request.resource.data.tier <= 4
+        && request.resource.data.score is int && request.resource.data.score <= 100;
+      allow delete: if request.auth != null && request.auth.uid == uid;
     }
     match /{document=**} {
       allow read, write: if false;

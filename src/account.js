@@ -57,15 +57,18 @@ async function pullAndMerge() {
     mergeInto(doc.exists ? doc.data() : null);
     store.set("pt_v4", data());
     await ref.set(snapshot());
+    await ensureNick();
+    await pushBoard();
     ACC.lastSync = new Date();
-    if (document.querySelector(".rankcard")) lobby();
+    if (!S.nick) nickSetup();
+    else if (document.querySelector(".rankcard")) lobby();
   } catch (e) { ACC.err = "기록 동기화에 실패했어요. 다음에 다시 시도할게요."; }
 }
 function scheduleSync() {
   if (!ACC.ready) return;
   clearTimeout(ACC.syncTimer);
   ACC.syncTimer = setTimeout(async () => {
-    try { await ACC.db.collection("users").doc(ACC.user.uid).set(snapshot()); ACC.lastSync = new Date(); ACC.err = null; }
+    try { await ACC.db.collection("users").doc(ACC.user.uid).set(snapshot()); await pushBoard(); ACC.lastSync = new Date(); ACC.err = null; }
     catch (e) { ACC.err = "기록 동기화에 실패했어요. 인터넷 연결을 확인해 주세요."; }
     refreshAccountCard();
   }, 3000);
@@ -94,6 +97,8 @@ async function signOutAll() {
 }
 async function deleteMyData() {
   try {
+    await ACC.db.collection("board").doc(ACC.user.uid).delete().catch(() => {});
+    if (S.nick) await ACC.db.collection("names").doc(nickKey(S.nick)).delete().catch(() => {});
     await ACC.db.collection("users").doc(ACC.user.uid).delete();
     await ACC.user.delete();
   } catch (e) {
@@ -109,7 +114,8 @@ function accountCardHTML() {
   const u = ACC.user, google = u && u.providerData.some(p => p.providerId === "google.com");
   const who = !u ? "연결 중…" : google ? `Google 계정 (${esc(u.email || "")})` : "익명 계정 (이 기기 전용)";
   const sync = ACC.lastSync ? `마지막 동기화 ${ACC.lastSync.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}` : "";
-  return `<div class="acc"><b>👤 ${who}</b>${sync ? `<span class="muted" style="margin-left:8px">${sync}</span>` : ""}
+  const nickLine = S.nick ? `<div class="nickline">🏷️ 닉네임 <b>${esc(S.nick)}</b> <button class="btn ghost tiny" id="acc-nick">변경</button></div>` : "";
+  return `<div class="acc">${nickLine}<b>👤 ${who}</b>${sync ? `<span class="muted" style="margin-left:8px">${sync}</span>` : ""}
     ${ACC.err ? `<p class="warn">${esc(ACC.err)}</p>` : ""}
     ${u && !google ? `<p class="muted">Google 계정을 연결하면 기기를 바꿔도 기록이 이어져요.</p><button class="btn tiny" id="acc-google">Google로 기록 지키기</button>` : ""}
     <div class="nav" style="justify-content:flex-start;gap:6px;flex-wrap:wrap;margin-top:8px">
@@ -123,6 +129,7 @@ function refreshAccountCard() {
   el.innerHTML = accountCardHTML();
   const on = (id, f) => { const e = document.getElementById(id); if (e) e.onclick = f; };
   on("acc-google", linkGoogle);
+  on("acc-nick", () => nickSetup(true));
   on("acc-out", signOutAll);
   on("acc-privacy", () => { document.getElementById("acc-more").innerHTML = PRIVACY_HTML; });
   on("acc-del", e => {
@@ -134,11 +141,11 @@ function refreshAccountCard() {
 const PRIVACY_HTML = `<div class="privacy">
  <b>개인정보 수집·이용 안내</b>
  <ul>
-  <li><b>수집하는 것:</b> 계정 식별번호(무작위 ID), 학습 기록(레벨테스트 결과, 푼 문제, 오답노트, 도감, 도장깨기), 직접 입력한 닉네임, 1:1 대결 기록, 문제 신고 내용. Google 계정을 연결하면 로그인 확인을 위해 이메일 주소가 Firebase 인증에 저장돼요.</li>
+  <li><b>수집하는 것:</b> 계정 식별번호(무작위 ID), 학습 기록(레벨테스트 결과, 푼 문제, 오답노트, 도감, 도장깨기), 직접 정한 닉네임, 랭킹용 게임 기록(등급·점수·도장깨기·타임어택·생존), 문제 신고 내용. Google 계정을 연결하면 로그인 확인을 위해 이메일 주소가 Firebase 인증에 저장돼요.</li>
   <li><b>수집하지 않는 것:</b> 실명, 소속, 연락처, 위치</li>
   <li><b>목적:</b> 기기 간 학습 기록 동기화, 문제 오류 수정</li>
   <li><b>보관:</b> 직접 삭제하거나 서비스를 종료할 때까지. 「내 데이터 삭제」를 누르면 서버 기록과 계정이 바로 지워져요.</li>
-  <li><b>공개 범위:</b> 내 학습 기록은 나만 볼 수 있어요. 1:1 대결을 하면 그 대결 상대에게만 닉네임과 대결 점수가 보여요.</li>
+  <li><b>공개 범위:</b> 닉네임과 랭킹용 게임 기록은 이 게임을 쓰는 다른 사용자에게 랭킹으로 보여요. 푼 문제·오답노트 같은 학습 기록은 나만 볼 수 있어요. 실명 대신 별명을 써주세요.</li>
   <li><b>처리 위탁:</b> Google Firebase(인증·데이터 저장)</li>
   <li><b>문의:</b> 운영자 김한샘</li>
  </ul></div>`;
@@ -165,45 +172,46 @@ function openReport(id) {
   };
 }
 
-// ===================== 1:1 대결 (Firestore matches/{code}) =====================
-const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-function newPlayer(nick) { return { uid: ACC.user.uid, nick, ans: [], score: 0, done: false, ms: 0 }; }
-async function createDuel(nick) {
-  for (let t = 0; t < 5; t++) {
-    let code = ""; for (let k = 0; k < 6; k++) code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
-    const ref = ACC.db.collection("matches").doc(code);
-    const qids = pickIds(ALL, DUEL_N);
-    try {
-      await ACC.db.runTransaction(async tx => {
-        const d = await tx.get(ref);
-        if (d.exists) throw new Error("dup");
-        tx.set(ref, { host: newPlayer(nick), guest: null, qids, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-      });
-      return code;
-    } catch (e) { if (e.message !== "dup") throw e; }
-  }
-  throw new Error("code");
-}
-async function joinDuel(code, nick) {
-  const ref = ACC.db.collection("matches").doc(code);
+
+// ===================== 닉네임 · 랭킹 (names/{닉네임}, board/{uid}) =====================
+const NICK_RE = /^[가-힣a-zA-Z0-9_]{2,12}$/;
+const nickKey = n => n.toLowerCase();
+// 이 기기의 닉네임이 서버에서 내 것인지 확인하고, 아니면 차지 시도 (계정 전환 대비)
+async function ensureNick() {
+  if (!S.nick) return;
   try {
-    let msg = "ok";
+    const ref = ACC.db.collection("names").doc(nickKey(S.nick));
     await ACC.db.runTransaction(async tx => {
       const d = await tx.get(ref);
-      if (!d.exists) { msg = "없는 코드예요. 다시 확인해 주세요."; return; }
-      const v = d.data();
-      if (v.host.uid === ACC.user.uid) { msg = "내가 만든 대결에는 참가할 수 없어요."; return; }
-      if (v.guest && v.guest.uid !== ACC.user.uid) { msg = "이미 다른 사람이 참가한 대결이에요."; return; }
-      if (!v.guest) tx.update(ref, { guest: newPlayer(nick) });
+      if (d.exists && d.data().uid !== ACC.user.uid) throw new Error("taken");
+      if (!d.exists) tx.set(ref, { uid: ACC.user.uid });
     });
-    return msg;
-  } catch (e) { return "참가하지 못했어요. 다시 시도해 주세요."; }
+  } catch (e) { if (e.message === "taken") { S.nick = ""; save(); } }
 }
-function watchDuel(code, cb) {
-  return ACC.db.collection("matches").doc(code).onSnapshot(d => cb(d.exists ? d.data() : null), () => cb(null));
+async function claimNick(nick) {
+  if (!NICK_RE.test(nick)) return "한글·영문·숫자·밑줄(_)로 2~12자로 정해 주세요.";
+  if (!ACC.ready) return "서버에 연결하는 중이에요. 잠시 후 다시 시도해 주세요.";
+  const newRef = ACC.db.collection("names").doc(nickKey(nick));
+  const oldKey = S.nick ? nickKey(S.nick) : null;
+  try {
+    await ACC.db.runTransaction(async tx => {
+      const d = await tx.get(newRef);
+      if (d.exists && d.data().uid !== ACC.user.uid) throw new Error("taken");
+      if (!d.exists) tx.set(newRef, { uid: ACC.user.uid });
+      if (oldKey && oldKey !== nickKey(nick)) tx.delete(ACC.db.collection("names").doc(oldKey));
+    });
+  } catch (e) { return e.message === "taken" ? "이미 다른 사람이 쓰는 닉네임이에요." : "저장하지 못했어요. 다시 시도해 주세요."; }
+  S.nick = nick; save();
+  try { await pushBoard(); } catch (_) {}
+  return "ok";
 }
-async function duelUpdate(code, role, fields) {
-  const upd = {};
-  for (const [k, v] of Object.entries(fields)) upd[role + "." + k] = v;
-  await ACC.db.collection("matches").doc(code).update(upd);
+function boardRow() {
+  const t = curTier(), sc = S.level.score == null ? -1 : S.level.score, n = S.dojo.cleared.length;
+  return { nick: S.nick, tier: t, score: sc, rk: (t + 1) * 1000 + Math.max(sc, 0), dojo: n, final: !!S.dojo.final, dk: (S.dojo.final ? 100 : 0) + n,
+    ta: S.rec.ta || 0, surv: S.rec.surv || 0, tests: S.rec.tests || 0, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+}
+async function pushBoard() { if (ACC.ready && S.nick) await ACC.db.collection("board").doc(ACC.user.uid).set(boardRow()); }
+async function fetchBoard(field) {
+  const q = await ACC.db.collection("board").orderBy(field, "desc").limit(50).get();
+  return q.docs.map(d => ({ uid: d.id, ...d.data() }));
 }
