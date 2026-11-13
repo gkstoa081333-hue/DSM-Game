@@ -30,24 +30,32 @@ async function initAccount() {
   } catch (e) { ACC.err = "서버에 연결하지 못했어요. 기록은 이 기기에만 저장돼요."; refreshAccountCard(); }
 }
 
-// 서버 기록과 기기 기록 합치기: 본 문제·도감은 합집합, 랭크와 최고 기록은 높은 쪽
+// 서버 기록과 기기 기록 합치기: 본 문제·도감·격파 관문은 합집합, 레벨테스트는 최신 결과, 기록은 높은 쪽
 function mergeInto(remote) {
   if (!remote) return;
   (remote.seen || []).forEach(i => seen.add(i));
   (remote.codex || []).forEach(i => codex.add(i));
   (remote.wrong || []).forEach(i => { if (!codex.has(i) || wrong.has(i)) wrong.add(i); });
-  if (remote.rank && rankScore(remote.rank) > rankScore(S.rank)) S.rank = remote.rank;
+  const rl = remote.level;
+  if (rl && rl.date && (!S.level.date || rl.date > S.level.date || (rl.date === S.level.date && (rl.hist || []).length > (S.level.hist || []).length))) S.level = rl;
+  if (remote.dojo) {
+    (remote.dojo.cleared || []).forEach(d => { if (!S.dojo.cleared.includes(d)) S.dojo.cleared.push(d); });
+    S.dojo.best = S.dojo.best || {};
+    for (const [k, v] of Object.entries(remote.dojo.best || {})) S.dojo.best[k] = Math.max(S.dojo.best[k] || 0, v);
+    S.dojo.final = S.dojo.final || !!remote.dojo.final;
+  }
   if (remote.rec) for (const k of Object.keys(remote.rec)) S.rec[k] = Math.max(S.rec[k] || 0, remote.rec[k] || 0);
+  if (!S.nick && remote.nick) S.nick = remote.nick;
 }
 function snapshot() {
-  return { rank: S.rank, rec: S.rec, seen: [...seen], wrong: [...wrong], codex: [...codex], updatedAt: firebase.firestore.FieldValue.serverTimestamp(), app: "dsm-game" };
+  return { ...data(), updatedAt: firebase.firestore.FieldValue.serverTimestamp(), app: "dsm-game" };
 }
 async function pullAndMerge() {
   try {
     const ref = ACC.db.collection("users").doc(ACC.user.uid);
     const doc = await ref.get();
     mergeInto(doc.exists ? doc.data() : null);
-    store.set("pt_v3", { rank: S.rank, rec: S.rec, seen: [...seen], wrong: [...wrong], codex: [...codex] });
+    store.set("pt_v4", data());
     await ref.set(snapshot());
     ACC.lastSync = new Date();
     if (document.querySelector(".rankcard")) lobby();
@@ -70,7 +78,7 @@ async function linkGoogle() {
   catch (e) {
     if (e.code === "auth/credential-already-in-use" && e.credential) {
       // 다른 기기에서 이미 쓰던 Google 계정 → 그 계정으로 들어가서 이 기기 기록을 합침
-      const local = { rank: S.rank, rec: { ...S.rec }, seen: [...seen], wrong: [...wrong], codex: [...codex] };
+      const local = JSON.parse(JSON.stringify(data()));
       await ACC.auth.signInWithCredential(e.credential);
       ACC.user = ACC.auth.currentUser; mergeInto(local); await pullAndMerge();
     } else if (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request") {
@@ -81,7 +89,7 @@ async function linkGoogle() {
 }
 async function signOutAll() {
   await ACC.auth.signOut(); // 로그아웃하면 새 익명 계정으로 다시 시작
-  try { localStorage.removeItem("pt_v3"); } catch (_) {}
+  try { localStorage.removeItem("pt_v4"); localStorage.removeItem("pt_v3"); } catch (_) {}
   location.reload();
 }
 async function deleteMyData() {
@@ -91,7 +99,7 @@ async function deleteMyData() {
   } catch (e) {
     if (e.code === "auth/requires-recent-login") { ACC.err = "보안을 위해 Google로 다시 로그인한 뒤 삭제해 주세요."; refreshAccountCard(); return; }
   }
-  try { localStorage.removeItem("pt_v3"); } catch (_) {}
+  try { localStorage.removeItem("pt_v4"); localStorage.removeItem("pt_v3"); } catch (_) {}
   location.reload();
 }
 
@@ -126,11 +134,11 @@ function refreshAccountCard() {
 const PRIVACY_HTML = `<div class="privacy">
  <b>개인정보 수집·이용 안내</b>
  <ul>
-  <li><b>수집하는 것:</b> 계정 식별번호(무작위 ID), 학습 기록(랭크, 푼 문제, 오답노트, 도감), 문제 신고 내용. Google 계정을 연결하면 로그인 확인을 위해 이메일 주소가 Firebase 인증에 저장돼요.</li>
+  <li><b>수집하는 것:</b> 계정 식별번호(무작위 ID), 학습 기록(레벨테스트 결과, 푼 문제, 오답노트, 도감, 도장깨기), 직접 입력한 닉네임, 1:1 대결 기록, 문제 신고 내용. Google 계정을 연결하면 로그인 확인을 위해 이메일 주소가 Firebase 인증에 저장돼요.</li>
   <li><b>수집하지 않는 것:</b> 실명, 소속, 연락처, 위치</li>
   <li><b>목적:</b> 기기 간 학습 기록 동기화, 문제 오류 수정</li>
   <li><b>보관:</b> 직접 삭제하거나 서비스를 종료할 때까지. 「내 데이터 삭제」를 누르면 서버 기록과 계정이 바로 지워져요.</li>
-  <li><b>공개 범위:</b> 내 기록은 나만 볼 수 있어요. 다른 사용자나 운영자 화면에 이름·기록이 노출되지 않아요.</li>
+  <li><b>공개 범위:</b> 내 학습 기록은 나만 볼 수 있어요. 1:1 대결을 하면 그 대결 상대에게만 닉네임과 대결 점수가 보여요.</li>
   <li><b>처리 위탁:</b> Google Firebase(인증·데이터 저장)</li>
   <li><b>문의:</b> 운영자 김한샘</li>
  </ul></div>`;
@@ -155,4 +163,47 @@ function openReport(id) {
       box.innerHTML = `<p class="muted">신고가 접수됐어요. 고마워요!</p>`;
     } catch (_) { e.target.disabled = false; e.target.textContent = "전송 실패 · 다시 시도"; }
   };
+}
+
+// ===================== 1:1 대결 (Firestore matches/{code}) =====================
+const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function newPlayer(nick) { return { uid: ACC.user.uid, nick, ans: [], score: 0, done: false, ms: 0 }; }
+async function createDuel(nick) {
+  for (let t = 0; t < 5; t++) {
+    let code = ""; for (let k = 0; k < 6; k++) code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
+    const ref = ACC.db.collection("matches").doc(code);
+    const qids = pickIds(ALL, DUEL_N);
+    try {
+      await ACC.db.runTransaction(async tx => {
+        const d = await tx.get(ref);
+        if (d.exists) throw new Error("dup");
+        tx.set(ref, { host: newPlayer(nick), guest: null, qids, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      });
+      return code;
+    } catch (e) { if (e.message !== "dup") throw e; }
+  }
+  throw new Error("code");
+}
+async function joinDuel(code, nick) {
+  const ref = ACC.db.collection("matches").doc(code);
+  try {
+    let msg = "ok";
+    await ACC.db.runTransaction(async tx => {
+      const d = await tx.get(ref);
+      if (!d.exists) { msg = "없는 코드예요. 다시 확인해 주세요."; return; }
+      const v = d.data();
+      if (v.host.uid === ACC.user.uid) { msg = "내가 만든 대결에는 참가할 수 없어요."; return; }
+      if (v.guest && v.guest.uid !== ACC.user.uid) { msg = "이미 다른 사람이 참가한 대결이에요."; return; }
+      if (!v.guest) tx.update(ref, { guest: newPlayer(nick) });
+    });
+    return msg;
+  } catch (e) { return "참가하지 못했어요. 다시 시도해 주세요."; }
+}
+function watchDuel(code, cb) {
+  return ACC.db.collection("matches").doc(code).onSnapshot(d => cb(d.exists ? d.data() : null), () => cb(null));
+}
+async function duelUpdate(code, role, fields) {
+  const upd = {};
+  for (const [k, v] of Object.entries(fields)) upd[role + "." + k] = v;
+  await ACC.db.collection("matches").doc(code).update(upd);
 }
