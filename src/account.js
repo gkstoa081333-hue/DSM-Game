@@ -1,6 +1,14 @@
 // ===================== 계정·동기화 (Firebase) =====================
 // FIREBASE_CONFIG가 null이면 지금처럼 기기에만 저장하는 모드로 동작해요.
-const FIREBASE_CONFIG = null; // ← Firebase 콘솔의 firebaseConfig 객체를 여기에 붙여넣기
+// Firebase 웹 설정값은 공개용 식별자예요(비밀번호 아님). 실제 보호는 firestore.rules가 맡아요.
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDx5ETXnljBBuYff-TwA8JeZM5-5sQsFnk",
+  authDomain: "dsm-game-98fec.firebaseapp.com",
+  projectId: "dsm-game-98fec",
+  storageBucket: "dsm-game-98fec.firebasestorage.app",
+  messagingSenderId: "319638969319",
+  appId: "1:319638969319:web:fffe09116209db40f87b42"
+};
 const FB_VER = "10.12.2";
 const ACC = { ready: false, user: null, db: null, auth: null, syncTimer: null, lastSync: null, err: null };
 
