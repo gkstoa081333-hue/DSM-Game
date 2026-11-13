@@ -34,7 +34,7 @@ const S=raw||{rank:{t:0,d:4,lp:0,promo:false},rec:{games:0,clears:0,surv:0,ta:0,
 const seen=new Set(raw?raw.seen:store.get("dsm_seen",[]));
 const wrong=new Set(raw?raw.wrong:store.get("dsm_wrong",[]));
 const codex=new Set(raw?raw.codex:[]);
-function save(){store.set("pt_v3",{rank:S.rank,rec:S.rec,seen:[...seen],wrong:[...wrong],codex:[...codex]})}
+function save(){store.set("pt_v3",{rank:S.rank,rec:S.rec,seen:[...seen],wrong:[...wrong],codex:[...codex]});if(typeof scheduleSync==="function")scheduleSync()}
 
 // ===================== 유틸 =====================
 const app=document.getElementById("app");
@@ -55,9 +55,7 @@ const REPO="https://github.com/gkstoa081333-hue/DSM-Game";
 function srcLine(id){
   const m=META[id]||{};const s=m.src||{};
   const t=s.u?`<a href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.t||"출처")}</a>`:esc(s.t||"");
-  const body=encodeURIComponent(`문항 ID: ${m.key}\n문제: ${BANK[id][1]}\n표시된 정답: ${BANK[id][2][0]}\n\n무엇이 잘못됐나요?\n`);
-  const rep=`${REPO}/issues/new?title=${encodeURIComponent("[문제 신고] "+m.key)}&labels=report&body=${body}`;
-  return `<div class="src">${m.st==="draft"?`<span class="badge">검수 전</span>`:""}${t?`<span>출처: ${t}</span>`:""}<a class="rep" href="${rep}" target="_blank" rel="noopener">🚩 문제 신고</a></div>`;
+  return `<div class="src">${m.st==="draft"?`<span class="badge">검수 전</span>`:""}${t?`<span>출처: ${t}</span>`:""}<button class="rep" data-rep="${id}">🚩 문제 신고</button></div><div class="repbox" id="rep-${id}"></div>`;
 }
 
 // 문항 판정: 기록(본 문제·오답노트·도감)을 바로 반영
@@ -102,6 +100,7 @@ function bindQ(onPick,onNext){
   app.querySelectorAll(".opt[data-k]").forEach(b=>b.onclick=()=>onPick(+b.dataset.k));
   const i=document.getElementById("idk");if(i)i.onclick=()=>onPick(-1);
   const n=document.getElementById("next");if(n)n.onclick=onNext;
+  app.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>openReport(+b.dataset.rep));
 }
 
 // ===================== 로비 =====================
@@ -128,6 +127,7 @@ function lobby(){
     <button class="mode" id="m-rv" ${wrong.size?"":"disabled"}><span class="mi">📕</span><b>오답 복습</b><small>오답노트 ${wrong.size}문항</small></button>
     <button class="mode" id="m-cx"><span class="mi">📖</span><b>진단명 도감</b><small>${codex.size} / ${BANK.length} 수집</small></button>
   </div>
+  <div class="card small" id="acc-wrap">${accountCardHTML()}</div>
   <div class="card small">
     <div class="stats"><div><b>${S.rec.games}</b><small>레이드 횟수</small></div><div><b>${S.rec.clears}</b><small>올클리어</small></div><div><b>${unseen}</b><small>안 푼 문항</small></div><div><b>${Math.round(codex.size/BANK.length*100)}%</b><small>도감 완성</small></div></div>
     <details><summary>랭크 규칙 보기</summary>
@@ -146,7 +146,7 @@ function lobby(){
     </details>
   </div>`;
   const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f};
-  showInstallHint();
+  showInstallHint();refreshAccountCard();
   on("m-raid",startRaid);on("m-surv",startSurv);on("m-ta",startTA);on("m-rv",startReview);on("m-cx",showCodex);on("promo",startPromo);
   on("exp",async e=>{const code=btoa(unescape(encodeURIComponent(JSON.stringify({rank:S.rank,rec:S.rec,seen:[...seen],wrong:[...wrong],codex:[...codex]}))));
     document.getElementById("bk").innerHTML=`<textarea readonly>${code}</textarea>`;try{await navigator.clipboard.writeText(code);e.target.textContent="복사됐어요 ✓"}catch(_){e.target.textContent="아래 코드를 길게 눌러 복사하세요"}});
@@ -405,4 +405,5 @@ function showInstallHint(){
   const x=document.getElementById("instx");if(x)x.onclick=()=>{store.set("pt_hide_inst",true);el.style.display="none"};
 }
 if("serviceWorker" in navigator&&location.protocol==="https:"&&window.self===window.top){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+initAccount();
 lobby();

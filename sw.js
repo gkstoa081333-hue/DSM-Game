@@ -1,5 +1,5 @@
 // 오프라인 실행용: 새 버전을 배포하면 VERSION 값을 올려주세요
-const VERSION="dsm-rank-v3";
+const VERSION="dsm-rank-v4";
 const FILES=["./","./index.html","./manifest.webmanifest","./icon-192.png","./icon-512.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});

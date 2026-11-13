@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 학습 기록: 본인만 읽기·쓰기·삭제
+    match /users/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['rank','rec','seen','wrong','codex','updatedAt','app'])
+        && request.resource.data.seen.size() <= 5000
+        && request.resource.data.wrong.size() <= 5000
+        && request.resource.data.codex.size() <= 5000;
+    }
+    // 문제 신고: 로그인한 사용자는 '보내기'만 가능, 읽기·수정·삭제 불가(운영자는 콘솔에서 확인)
+    match /reports/{id} {
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['qid','note','uid','createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.qid is string && request.resource.data.qid.size() <= 20
+        && request.resource.data.note is string && request.resource.data.note.size() <= 500;
+      allow read, update, delete: if false;
+    }
+    // 그 밖의 모든 경로는 거부
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

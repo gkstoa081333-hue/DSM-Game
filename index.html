@@ -100,6 +100,10 @@ details{margin-top:12px}summary{cursor:pointer;color:var(--sub);font-size:.9rem}
 .src{margin-top:8px;font-size:.78rem;color:var(--sub);display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 .src a{color:#b9b1ff}
 .src .rep{margin-left:auto;color:var(--sub);text-decoration:none;border:1px solid var(--line);border-radius:99px;padding:2px 10px}
+.acc p{margin:4px 0}.warn{color:var(--ng);font-size:.85rem}
+.privacy{margin-top:10px;background:var(--card2);border-radius:12px;padding:10px 12px;font-size:.82rem}.privacy ul{padding-left:18px;margin:6px 0}
+button.rep{margin-left:auto;background:transparent;color:var(--sub);border:1px solid var(--line);border-radius:99px;padding:2px 10px;font:inherit;font-size:.78rem;cursor:pointer}
+.repbox textarea{margin-top:8px;min-height:70px;font-size:.85rem}
 .badge{background:rgba(255,201,77,.15);color:var(--gold);border-radius:99px;padding:1px 8px;font-weight:700}
 .gain{color:var(--gold);font-weight:700;margin-left:8px;font-size:.88rem}
 .nav{display:flex;justify-content:flex-end;margin-top:12px}
@@ -162,6 +166,157 @@ const BANK=[["DSM-5 체계", "DSM-IV에서 DSM-5로 바뀐 내용으로 옳지 �
 const META=[{"key": "v1-001", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-002", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-003", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-004", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-005", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-006", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-007", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-008", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-009", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-010", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-011", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-012", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-013", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-014", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-015", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-016", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-017", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-018", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-019", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-020", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-021", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-022", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-023", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-024", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-025", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-026", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-027", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-028", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-029", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-030", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-031", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-032", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-033", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-034", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-035", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-036", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-037", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-038", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-039", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-040", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-041", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-042", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-043", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-044", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-045", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-046", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-047", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-048", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-049", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-050", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-051", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-052", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-053", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-054", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-055", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-056", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-057", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-058", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-059", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-060", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-061", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-062", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-063", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-064", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-065", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-066", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-067", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-068", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-069", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-070", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-071", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-072", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-073", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-074", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-075", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-076", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-077", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-078", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-079", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-080", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-081", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-082", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-083", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-084", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-085", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-086", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-087", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-088", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-089", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-090", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-091", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-092", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-093", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-094", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-095", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-096", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-097", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-098", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-099", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-100", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-101", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-102", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-103", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-104", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-105", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-106", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-107", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-108", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-109", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-110", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-111", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-112", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-113", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-114", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-115", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-116", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-117", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-118", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-119", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-120", "lv": 2, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-121", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-122", "lv": 3, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "v1-123", "lv": 1, "st": "v1", "src": {"t": "첨부 교재(정신의학 요약) · DSM-5 요약 자료", "u": ""}}, {"key": "law-001", "lv": 1, "st": "draft", "src": {"t": "정신건강복지법 제41조(자의입원등)", "u": "https://korea.legal/wiki/%ec%a0%95%ec%8b%a0%ea%b1%b4%ea%b0%95%ec%a6%9d%ec%a7%84-%eb%b0%8f-%ec%a0%95%ec%8b%a0%ec%a7%88%ed%99%98%ec%9e%90-%eb%b3%b5%ec%a7%80%ec%84%9c%eb%b9%84%ec%8a%a4-%ec%a7%80%ec%9b%90-2/"}}, {"key": "law-002", "lv": 2, "st": "draft", "src": {"t": "정신건강복지법 제42조(동의입원등)", "u": "https://korea.legal/wiki/%ec%a0%95%ec%8b%a0%ea%b1%b4%ea%b0%95%ec%a6%9d%ec%a7%84-%eb%b0%8f-%ec%a0%95%ec%8b%a0%ec%a7%88%ed%99%98%ec%9e%90-%eb%b3%b5%ec%a7%80%ec%84%9c%eb%b9%84%ec%8a%a4-%ec%a7%80%ec%9b%90-3/"}}, {"key": "law-003", "lv": 3, "st": "draft", "src": {"t": "정신건강복지법 제42조(동의입원등)", "u": "https://korea.legal/wiki/%ec%a0%95%ec%8b%a0%ea%b1%b4%ea%b0%95%ec%a6%9d%ec%a7%84-%eb%b0%8f-%ec%a0%95%ec%8b%a0%ec%a7%88%ed%99%98%ec%9e%90-%eb%b3%b5%ec%a7%80%ec%84%9c%eb%b9%84%ec%8a%a4-%ec%a7%80%ec%9b%90-3/"}}, {"key": "law-004", "lv": 1, "st": "draft", "src": {"t": "정신건강복지법 제43조 해설(입원·퇴원 절차)", "u": "https://korea.legal/wiki/%ec%a0%95%ec%8b%a0%ec%9d%98%eb%a3%8c%ea%b8%b0%ea%b4%80%ec%9d%98-%ec%9e%85%ec%9b%90%c2%b7%ed%87%b4%ec%9b%90-%ec%a0%88%ec%b0%a8-%ec%9c%84%eb%b0%98%ea%b3%bc-%eb%af%bc%ec%82%ac/"}}, {"key": "law-005", "lv": 1, "st": "draft", "src": {"t": "정신건강복지법 제43조 해설(입원·퇴원 절차)", "u": "https://korea.legal/wiki/%ec%a0%95%ec%8b%a0%ec%9d%98%eb%a3%8c%ea%b8%b0%ea%b4%80%ec%9d%98-%ec%9e%85%ec%9b%90%c2%b7%ed%87%b4%ec%9b%90-%ec%a0%88%ec%b0%a8-%ec%9c%84%eb%b0%98%ea%b3%bc-%eb%af%bc%ec%82%ac/"}}, {"key": "law-006", "lv": 2, "st": "draft", "src": {"t": "정신건강복지법 제43조 해설(입원·퇴원 절차)", "u": "https://korea.legal/wiki/%ec%a0%95%ec%8b%a0%ec%9d%98%eb%a3%8c%ea%b8%b0%ea%b4%80%ec%9d%98-%ec%9e%85%ec%9b%90%c2%b7%ed%87%b4%ec%9b%90-%ec%a0%88%ec%b0%a8-%ec%9c%84%eb%b0%98%ea%b3%bc-%eb%af%bc%ec%82%ac/"}}, {"key": "law-007", "lv": 2, "st": "draft", "src": {"t": "정신건강복지법 제43조 제5항", "u": "https://www.nepla.ai/wiki/복지와-건강/보건-의료/-유권해석-정신건강증진-및-정신질환자-복지서비스-지원에-관한-법률-제43조-보호의무자에-의한-입원등-zr592wdqo96k"}}, {"key": "law-008", "lv": 3, "st": "draft", "src": {"t": "정신건강복지법 제43조 해설(입원·퇴원 절차)", "u": "https://korea.legal/wiki/%ec%a0%95%ec%8b%a0%ec%9d%98%eb%a3%8c%ea%b8%b0%ea%b4%80%ec%9d%98-%ec%9e%85%ec%9b%90%c2%b7%ed%87%b4%ec%9b%90-%ec%a0%88%ec%b0%a8-%ec%9c%84%eb%b0%98%ea%b3%bc-%eb%af%bc%ec%82%ac/"}}, {"key": "law-009", "lv": 2, "st": "draft", "src": {"t": "정신건강복지법 제44조(시장·군수·구청장에 의한 입원)", "u": "https://korea.legal/wiki/%ec%a0%95%ec%8b%a0%ea%b1%b4%ea%b0%95%ec%a6%9d%ec%a7%84-%eb%b0%8f-%ec%a0%95%ec%8b%a0%ec%a7%88%ed%99%98%ec%9e%90-%eb%b3%b5%ec%a7%80%ec%84%9c%eb%b9%84%ec%8a%a4-%ec%a7%80%ec%9b%90-5/"}}, {"key": "law-010", "lv": 2, "st": "draft", "src": {"t": "정신건강복지법 제44조(시장·군수·구청장에 의한 입원)", "u": "https://korea.legal/wiki/%ec%a0%95%ec%8b%a0%ea%b1%b4%ea%b0%95%ec%a6%9d%ec%a7%84-%eb%b0%8f-%ec%a0%95%ec%8b%a0%ec%a7%88%ed%99%98%ec%9e%90-%eb%b3%b5%ec%a7%80%ec%84%9c%eb%b9%84%ec%8a%a4-%ec%a7%80%ec%9b%90-5/"}}, {"key": "law-011", "lv": 1, "st": "draft", "src": {"t": "정신건강복지법 제50조(응급입원)", "u": "https://korea.legal/wiki/%ec%a0%95%ec%8b%a0%ea%b1%b4%ea%b0%95%ec%a6%9d%ec%a7%84-%eb%b0%8f-%ec%a0%95%ec%8b%a0%ec%a7%88%ed%99%98%ec%9e%90-%eb%b3%b5%ec%a7%80%ec%84%9c%eb%b9%84%ec%8a%a4-%ec%a7%80%ec%9b%90-6/"}}, {"key": "law-012", "lv": 2, "st": "draft", "src": {"t": "정신건강복지법 제50조(응급입원)", "u": "https://www.nepla.ai/wiki/복지와-건강/보건-의료/-유권해석-정신건강증진-및-정신질환자-복지서비스-지원에-관한-법률-제50조-응급입원-jxm9lr7g49pg"}}, {"key": "law-013", "lv": 2, "st": "draft", "src": {"t": "정신건강복지법 제50조 해설", "u": "https://korea.legal/wiki/%ec%a0%95%ec%8b%a0%ec%9d%98%eb%a3%8c%ea%b8%b0%ea%b4%80%ec%9d%98-%ec%9e%85%ec%9b%90%c2%b7%ed%87%b4%ec%9b%90-%ec%a0%88%ec%b0%a8-%ec%9c%84%eb%b0%98%ea%b3%bc-%eb%af%bc%ec%82%ac/"}}, {"key": "law-014", "lv": 3, "st": "draft", "src": {"t": "법제처 유권해석(정신건강복지법 제50조 제1항)", "u": "https://www.nepla.ai/wiki/복지와-건강/보건-의료/-유권해석-정신건강증진-및-정신질환자-복지서비스-지원에-관한-법률-제50조-응급입원"}}, {"key": "law-015", "lv": 2, "st": "draft", "src": {"t": "참여연대 월간복지동향(2016-08) 정신건강복지법 개정 해설", "u": "https://peoplepower21.org/welfarenow/1443099"}}, {"key": "law-016", "lv": 3, "st": "draft", "src": {"t": "헌법재판소 2014헌가9 결정 해설", "u": "https://www.lawtalk.co.kr/posts/177739"}}, {"key": "law-017", "lv": 2, "st": "draft", "src": {"t": "대한신경정신의학회지 관련 연구(KCI)", "u": "https://scholarworks.bwise.kr/hanyang/bitstream/2021.sw.hanyang/144374/1/KCI_FI002653728.pdf"}}];
 const STUDY={[D1]:"DSM-5 상위범주·하위유형 자료 전체(개정 특징 위주)",[D2]:"교재 'Schizophrenia', 'Schizophrenia Spectrum' 장",[D3]:"교재 'Bipolar', 'Depressive Disorders' 장",[D4]:"교재 'Anxiety', 'Obsessive-Compulsive', 'Trauma- and Stressor-Related' 장",[D5]:"교재 'Personality Disorders' 장 + 방어기제",[D6]:"교재 'Neurocognitive', 'Substance-Related' 장",[D7]:"교재 'Biological Treatment', 'Psychosocial Treatment', 'Other Mental Disorders'(약물 부작용) 장",[D8]:"교재 'Suicide', 'Community Psychiatry', 'Forensic Psychiatry', 'Shin-byung and Hwa-byung' 장",[D9]:"교재 'Concepts and History', 'Psychosocial Theories', 'Life Cycle', 'Psychopathology' 장",[D10]:"교재 'Somatic', 'Dissociative', 'Feeding and Eating', 'Sleep', 'Child and Adolescent' 장",[D11]:"국가법령정보센터 정신건강복지법 제39~50조(입원 유형·절차), 입원적합성심사"};
 
+// ===================== 계정·동기화 (Firebase) =====================
+// FIREBASE_CONFIG가 null이면 지금처럼 기기에만 저장하는 모드로 동작해요.
+const FIREBASE_CONFIG = null; // ← Firebase 콘솔의 firebaseConfig 객체를 여기에 붙여넣기
+const FB_VER = "10.12.2";
+const ACC = { ready: false, user: null, db: null, auth: null, syncTimer: null, lastSync: null, err: null };
+
+function loadScript(src) {
+  return new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+}
+async function initAccount() {
+  if (!FIREBASE_CONFIG) return;
+  try {
+    for (const m of ["app", "auth", "firestore"]) await loadScript(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-${m}-compat.js`);
+    firebase.initializeApp(FIREBASE_CONFIG);
+    ACC.auth = firebase.auth(); ACC.db = firebase.firestore();
+    await ACC.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); // 휴대폰에 로그인 유지
+    ACC.auth.onAuthStateChanged(async u => {
+      ACC.user = u;
+      if (!u) { try { await ACC.auth.signInAnonymously(); } catch (e) { ACC.err = "로그인에 실패했어요. 기록은 이 기기에만 저장돼요."; refreshAccountCard(); } return; }
+      ACC.ready = true; await pullAndMerge(); refreshAccountCard();
+    });
+  } catch (e) { ACC.err = "서버에 연결하지 못했어요. 기록은 이 기기에만 저장돼요."; refreshAccountCard(); }
+}
+
+// 서버 기록과 기기 기록 합치기: 본 문제·도감은 합집합, 랭크와 최고 기록은 높은 쪽
+function mergeInto(remote) {
+  if (!remote) return;
+  (remote.seen || []).forEach(i => seen.add(i));
+  (remote.codex || []).forEach(i => codex.add(i));
+  (remote.wrong || []).forEach(i => { if (!codex.has(i) || wrong.has(i)) wrong.add(i); });
+  if (remote.rank && rankScore(remote.rank) > rankScore(S.rank)) S.rank = remote.rank;
+  if (remote.rec) for (const k of Object.keys(remote.rec)) S.rec[k] = Math.max(S.rec[k] || 0, remote.rec[k] || 0);
+}
+function snapshot() {
+  return { rank: S.rank, rec: S.rec, seen: [...seen], wrong: [...wrong], codex: [...codex], updatedAt: firebase.firestore.FieldValue.serverTimestamp(), app: "dsm-game" };
+}
+async function pullAndMerge() {
+  try {
+    const ref = ACC.db.collection("users").doc(ACC.user.uid);
+    const doc = await ref.get();
+    mergeInto(doc.exists ? doc.data() : null);
+    store.set("pt_v3", { rank: S.rank, rec: S.rec, seen: [...seen], wrong: [...wrong], codex: [...codex] });
+    await ref.set(snapshot());
+    ACC.lastSync = new Date();
+    if (document.querySelector(".rankcard")) lobby();
+  } catch (e) { ACC.err = "기록 동기화에 실패했어요. 다음에 다시 시도할게요."; }
+}
+function scheduleSync() {
+  if (!ACC.ready) return;
+  clearTimeout(ACC.syncTimer);
+  ACC.syncTimer = setTimeout(async () => {
+    try { await ACC.db.collection("users").doc(ACC.user.uid).set(snapshot()); ACC.lastSync = new Date(); ACC.err = null; }
+    catch (e) { ACC.err = "기록 동기화에 실패했어요. 인터넷 연결을 확인해 주세요."; }
+    refreshAccountCard();
+  }, 3000);
+}
+
+// Google 계정 연결: 익명 기록을 그대로 Google 계정에 옮김
+async function linkGoogle() {
+  const p = new firebase.auth.GoogleAuthProvider();
+  try { await ACC.user.linkWithPopup(p); ACC.user = ACC.auth.currentUser; await pullAndMerge(); }
+  catch (e) {
+    if (e.code === "auth/credential-already-in-use" && e.credential) {
+      // 다른 기기에서 이미 쓰던 Google 계정 → 그 계정으로 들어가서 이 기기 기록을 합침
+      const local = { rank: S.rank, rec: { ...S.rec }, seen: [...seen], wrong: [...wrong], codex: [...codex] };
+      await ACC.auth.signInWithCredential(e.credential);
+      ACC.user = ACC.auth.currentUser; mergeInto(local); await pullAndMerge();
+    } else if (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request") {
+      ACC.err = "Google 연결에 실패했어요(" + (e.code || "알 수 없음") + ")";
+    }
+  }
+  refreshAccountCard();
+}
+async function signOutAll() {
+  await ACC.auth.signOut(); // 로그아웃하면 새 익명 계정으로 다시 시작
+  try { localStorage.removeItem("pt_v3"); } catch (_) {}
+  location.reload();
+}
+async function deleteMyData() {
+  try {
+    await ACC.db.collection("users").doc(ACC.user.uid).delete();
+    await ACC.user.delete();
+  } catch (e) {
+    if (e.code === "auth/requires-recent-login") { ACC.err = "보안을 위해 Google로 다시 로그인한 뒤 삭제해 주세요."; refreshAccountCard(); return; }
+  }
+  try { localStorage.removeItem("pt_v3"); } catch (_) {}
+  location.reload();
+}
+
+// 로비의 계정 카드
+function accountCardHTML() {
+  if (!FIREBASE_CONFIG) return `<div class="acc"><b>👤 계정</b><p class="muted">아직 로그인 기능이 꺼져 있어요. 기록은 이 기기에만 저장돼요.</p></div>`;
+  const u = ACC.user, google = u && u.providerData.some(p => p.providerId === "google.com");
+  const who = !u ? "연결 중…" : google ? `Google 계정 (${esc(u.email || "")})` : "익명 계정 (이 기기 전용)";
+  const sync = ACC.lastSync ? `마지막 동기화 ${ACC.lastSync.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}` : "";
+  return `<div class="acc"><b>👤 ${who}</b>${sync ? `<span class="muted" style="margin-left:8px">${sync}</span>` : ""}
+    ${ACC.err ? `<p class="warn">${esc(ACC.err)}</p>` : ""}
+    ${u && !google ? `<p class="muted">Google 계정을 연결하면 기기를 바꿔도 기록이 이어져요.</p><button class="btn tiny" id="acc-google">Google로 기록 지키기</button>` : ""}
+    <div class="nav" style="justify-content:flex-start;gap:6px;flex-wrap:wrap;margin-top:8px">
+      <button class="btn ghost tiny" id="acc-privacy">개인정보 안내</button>
+      ${google ? `<button class="btn ghost tiny" id="acc-out">로그아웃</button>` : ""}
+      ${u ? `<button class="btn ghost tiny" id="acc-del">내 데이터 삭제</button>` : ""}
+    </div><div id="acc-more"></div></div>`;
+}
+function refreshAccountCard() {
+  const el = document.getElementById("acc-wrap"); if (!el) return;
+  el.innerHTML = accountCardHTML();
+  const on = (id, f) => { const e = document.getElementById(id); if (e) e.onclick = f; };
+  on("acc-google", linkGoogle);
+  on("acc-out", signOutAll);
+  on("acc-privacy", () => { document.getElementById("acc-more").innerHTML = PRIVACY_HTML; });
+  on("acc-del", e => {
+    const b = e.target;
+    if (b.dataset.ok) deleteMyData();
+    else { b.dataset.ok = 1; b.textContent = "한 번 더 누르면 서버와 이 기기의 기록이 모두 지워져요"; }
+  });
+}
+const PRIVACY_HTML = `<div class="privacy">
+ <b>개인정보 수집·이용 안내</b>
+ <ul>
+  <li><b>수집하는 것:</b> 계정 식별번호(무작위 ID), 학습 기록(랭크, 푼 문제, 오답노트, 도감), 문제 신고 내용. Google 계정을 연결하면 로그인 확인을 위해 이메일 주소가 Firebase 인증에 저장돼요.</li>
+  <li><b>수집하지 않는 것:</b> 실명, 소속, 연락처, 위치</li>
+  <li><b>목적:</b> 기기 간 학습 기록 동기화, 문제 오류 수정</li>
+  <li><b>보관:</b> 직접 삭제하거나 서비스를 종료할 때까지. 「내 데이터 삭제」를 누르면 서버 기록과 계정이 바로 지워져요.</li>
+  <li><b>공개 범위:</b> 내 기록은 나만 볼 수 있어요. 다른 사용자나 운영자 화면에 이름·기록이 노출되지 않아요.</li>
+  <li><b>처리 위탁:</b> Google Firebase(인증·데이터 저장)</li>
+  <li><b>문의:</b> 운영자 김한샘</li>
+ </ul></div>`;
+
+// 게임 안 문제 신고 (계정 없이)
+function openReport(id) {
+  const m = META[id] || {}, box = document.getElementById("rep-" + id);
+  if (!box) return;
+  if (!ACC.ready) { // 로그인 기능이 꺼져 있으면 GitHub Issue로
+    const body = encodeURIComponent(`문항 ID: ${m.key}\n문제: ${BANK[id][1]}\n표시된 정답: ${BANK[id][2][0]}\n\n무엇이 잘못됐나요?\n`);
+    window.open(`${REPO}/issues/new?title=${encodeURIComponent("[문제 신고] " + m.key)}&labels=report&body=${body}`, "_blank", "noopener");
+    return;
+  }
+  box.innerHTML = `<textarea id="rep-t-${id}" maxlength="500" placeholder="무엇이 잘못됐나요? (예: 정답이 3번이 아니라 2번 같아요, 법 조항이 바뀌었어요)"></textarea>
+   <div class="nav" style="justify-content:flex-start;gap:6px"><button class="btn tiny" id="rep-go-${id}">신고 보내기</button></div>`;
+  document.getElementById("rep-go-" + id).onclick = async e => {
+    const note = document.getElementById("rep-t-" + id).value.trim().slice(0, 500);
+    if (!note) return;
+    e.target.disabled = true;
+    try {
+      await ACC.db.collection("reports").add({ qid: m.key, note, uid: ACC.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      box.innerHTML = `<p class="muted">신고가 접수됐어요. 고마워요!</p>`;
+    } catch (_) { e.target.disabled = false; e.target.textContent = "전송 실패 · 다시 시도"; }
+  };
+}
+
 // ===================== 설정 =====================
 const TIERS=[
  {n:"미생",c:"#9aa1b5",e:"🌱"},
@@ -198,7 +353,7 @@ const S=raw||{rank:{t:0,d:4,lp:0,promo:false},rec:{games:0,clears:0,surv:0,ta:0,
 const seen=new Set(raw?raw.seen:store.get("dsm_seen",[]));
 const wrong=new Set(raw?raw.wrong:store.get("dsm_wrong",[]));
 const codex=new Set(raw?raw.codex:[]);
-function save(){store.set("pt_v3",{rank:S.rank,rec:S.rec,seen:[...seen],wrong:[...wrong],codex:[...codex]})}
+function save(){store.set("pt_v3",{rank:S.rank,rec:S.rec,seen:[...seen],wrong:[...wrong],codex:[...codex]});if(typeof scheduleSync==="function")scheduleSync()}
 
 // ===================== 유틸 =====================
 const app=document.getElementById("app");
@@ -219,9 +374,7 @@ const REPO="https://github.com/gkstoa081333-hue/DSM-Game";
 function srcLine(id){
   const m=META[id]||{};const s=m.src||{};
   const t=s.u?`<a href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.t||"출처")}</a>`:esc(s.t||"");
-  const body=encodeURIComponent(`문항 ID: ${m.key}\n문제: ${BANK[id][1]}\n표시된 정답: ${BANK[id][2][0]}\n\n무엇이 잘못됐나요?\n`);
-  const rep=`${REPO}/issues/new?title=${encodeURIComponent("[문제 신고] "+m.key)}&labels=report&body=${body}`;
-  return `<div class="src">${m.st==="draft"?`<span class="badge">검수 전</span>`:""}${t?`<span>출처: ${t}</span>`:""}<a class="rep" href="${rep}" target="_blank" rel="noopener">🚩 문제 신고</a></div>`;
+  return `<div class="src">${m.st==="draft"?`<span class="badge">검수 전</span>`:""}${t?`<span>출처: ${t}</span>`:""}<button class="rep" data-rep="${id}">🚩 문제 신고</button></div><div class="repbox" id="rep-${id}"></div>`;
 }
 
 // 문항 판정: 기록(본 문제·오답노트·도감)을 바로 반영
@@ -266,6 +419,7 @@ function bindQ(onPick,onNext){
   app.querySelectorAll(".opt[data-k]").forEach(b=>b.onclick=()=>onPick(+b.dataset.k));
   const i=document.getElementById("idk");if(i)i.onclick=()=>onPick(-1);
   const n=document.getElementById("next");if(n)n.onclick=onNext;
+  app.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>openReport(+b.dataset.rep));
 }
 
 // ===================== 로비 =====================
@@ -292,6 +446,7 @@ function lobby(){
     <button class="mode" id="m-rv" ${wrong.size?"":"disabled"}><span class="mi">📕</span><b>오답 복습</b><small>오답노트 ${wrong.size}문항</small></button>
     <button class="mode" id="m-cx"><span class="mi">📖</span><b>진단명 도감</b><small>${codex.size} / ${BANK.length} 수집</small></button>
   </div>
+  <div class="card small" id="acc-wrap">${accountCardHTML()}</div>
   <div class="card small">
     <div class="stats"><div><b>${S.rec.games}</b><small>레이드 횟수</small></div><div><b>${S.rec.clears}</b><small>올클리어</small></div><div><b>${unseen}</b><small>안 푼 문항</small></div><div><b>${Math.round(codex.size/BANK.length*100)}%</b><small>도감 완성</small></div></div>
     <details><summary>랭크 규칙 보기</summary>
@@ -310,7 +465,7 @@ function lobby(){
     </details>
   </div>`;
   const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f};
-  showInstallHint();
+  showInstallHint();refreshAccountCard();
   on("m-raid",startRaid);on("m-surv",startSurv);on("m-ta",startTA);on("m-rv",startReview);on("m-cx",showCodex);on("promo",startPromo);
   on("exp",async e=>{const code=btoa(unescape(encodeURIComponent(JSON.stringify({rank:S.rank,rec:S.rec,seen:[...seen],wrong:[...wrong],codex:[...codex]}))));
     document.getElementById("bk").innerHTML=`<textarea readonly>${code}</textarea>`;try{await navigator.clipboard.writeText(code);e.target.textContent="복사됐어요 ✓"}catch(_){e.target.textContent="아래 코드를 길게 눌러 복사하세요"}});
@@ -569,6 +724,7 @@ function showInstallHint(){
   const x=document.getElementById("instx");if(x)x.onclick=()=>{store.set("pt_hide_inst",true);el.style.display="none"};
 }
 if("serviceWorker" in navigator&&location.protocol==="https:"&&window.self===window.top){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+initAccount();
 lobby();
 
 </script>
