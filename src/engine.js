@@ -362,7 +362,24 @@ function djEnd(){
 }
 
 // ===================== 🏷️ 닉네임 정하기 =====================
+// ===================== 🔐 헌터 인증 (Google 먼저 → 헌터명) =====================
+function loginGate(){
+  stopAll();
+  app.innerHTML=`<div class="card hero"><div style="font-size:3rem">🔐</div><div class="systag">[시스템]</div><h1>헌터 인증이 필요합니다</h1>
+    <p class="muted">Google 계정으로 로그인하면 헌터명과 기록이 계정에 저장돼요.<br>로그아웃하거나 휴대폰을 바꿔도 다시 로그인하면 그대로 이어져요.</p>
+    <p class="warn" id="gmsg"></p>
+    <div class="nav" style="justify-content:center;gap:8px;flex-direction:column;align-items:center">
+      <button class="btn big" id="gg">Google로 시작하기</button>
+      <button class="btn ghost tiny" id="guest">로그인 없이 둘러보기</button></div>
+    <p class="muted" style="font-size:.8rem;margin-top:10px">둘러보기는 이 기기에만 기록되고, 헌터명 등록·헌터 랭킹은 쓸 수 없어요.</p></div>`;
+  on("gg",async e=>{e.target.disabled=true;document.getElementById("gmsg").textContent="";await linkGoogle();
+    if(!isGoogle()){const m=document.getElementById("gmsg");if(m)m.textContent=ACC.err||"로그인이 완료되지 않았어요. 다시 눌러주세요.";e.target.disabled=false}});
+  on("guest",()=>{try{sessionStorage.setItem("pt_guest","1")}catch(_){}lobby()});
+  goTop();
+}
+
 function nickSetup(change){
+  if(!isGoogle()&&!S.nick)return loginGate();
   stopAll();
   app.innerHTML=`<div class="card hero"><div style="font-size:3rem">🏷️</div><div class="systag">[시스템]</div><h1>${change?"헌터명 변경":"플레이어로 선택되었습니다"}</h1>
     <p class="muted">${change?"헌터 랭킹에 표시될 이름을 바꿉니다.":"헌터명을 등록하세요. 헌터 랭킹에 이 이름으로 기록이 남아요. 실명 대신 별명을 추천해요."}</p>
@@ -384,7 +401,7 @@ const RANK_TABS=[{k:"rk",n:"등급",f:r=>r.score<0?"-":`${TIERS[r.tier]?TIERS[r.
 async function rankingView(tab){
   stopAll();tab=tab||"rk";
   if(!ACC.ready){app.innerHTML=`<div class="card hero"><div style="font-size:3rem">🏆</div><h1>헌터 랭킹</h1><p class="muted">${ACC.err?esc(ACC.err):"서버에 연결하는 중이에요. 잠시 후 다시 눌러주세요."}</p><button class="btn ghost" id="lb">로비로</button></div>`;on("lb",lobby);return}
-  if(!S.nick)return nickSetup();
+  if(!S.nick)return isGoogle()?nickSetup():loginGate();
   const T=RANK_TABS.find(x=>x.k===tab);
   app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">🏆 헌터 랭킹</span><span class="muted">나: ${esc(S.nick)}</span></div>
     <div class="tabs">${RANK_TABS.map(x=>`<button class="tab ${x.k===tab?"on":""}" data-tab="${x.k}">${x.n}</button>`).join("")}</div></div>

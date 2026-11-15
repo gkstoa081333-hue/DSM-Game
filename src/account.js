@@ -64,7 +64,8 @@ async function pullAndMerge() {
     await ensureNick();
     await pushBoard();
     ACC.lastSync = new Date();
-    if (!S.nick) nickSetup();
+    if (!S.nick) { if (isGoogle()) nickSetup(); else if (!guestMode()) loginGate(); }
+    else if (document.getElementById("gg")) { lobby(); systemMsg([`헌터 인증이 완료되었습니다.`, `돌아오신 것을 환영합니다, ${S.nick} 헌터님.`, `저장된 등급과 기록을 불러왔습니다.`]); }
     else if (document.querySelector(".rankcard")) lobby();
   } catch (e) { ACC.err = "기록 동기화에 실패했어요. 다음에 다시 시도할게요."; }
 }
@@ -86,6 +87,7 @@ async function linkGoogle() {
     if (e.code === "auth/credential-already-in-use" && e.credential) {
       // 다른 기기에서 이미 쓰던 Google 계정 → 그 계정으로 들어가서 이 기기 기록을 합침
       const local = JSON.parse(JSON.stringify(data()));
+      S.nick = ""; // 그 Google 계정에 등록된 헌터명을 우선 복원
       await ACC.auth.signInWithCredential(e.credential);
       ACC.user = ACC.auth.currentUser; mergeInto(local); await pullAndMerge();
     } else if (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request") {
@@ -94,6 +96,8 @@ async function linkGoogle() {
   }
   refreshAccountCard();
 }
+const isGoogle = () => !!(ACC.user && ACC.user.providerData.some(p => p.providerId === "google.com"));
+const guestMode = () => { try { return sessionStorage.getItem("pt_guest") === "1"; } catch (_) { return false; } };
 async function signOutAll() {
   await ACC.auth.signOut(); // 로그아웃하면 새 익명 계정으로 다시 시작
   try { localStorage.removeItem("pt_v4"); localStorage.removeItem("pt_v3"); } catch (_) {}
@@ -115,13 +119,13 @@ async function deleteMyData() {
 // 로비의 계정 카드
 function accountCardHTML() {
   if (!FIREBASE_CONFIG) return `<div class="acc"><b>👤 계정</b><p class="muted">아직 로그인 기능이 꺼져 있어요. 기록은 이 기기에만 저장돼요.</p></div>`;
-  const u = ACC.user, google = u && u.providerData.some(p => p.providerId === "google.com");
+  const u = ACC.user, google = isGoogle();
   const who = !u ? "연결 중…" : google ? `Google 계정 (${esc(u.email || "")})` : "익명 계정 (이 기기 전용)";
   const sync = ACC.lastSync ? `마지막 동기화 ${ACC.lastSync.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}` : "";
   const nickLine = S.nick ? `<div class="nickline">🏷️ 헌터명 <b>${esc(S.nick)}</b> <button class="btn ghost tiny" id="acc-nick">변경</button></div>` : "";
   return `<div class="acc">${nickLine}<b>👤 ${who}</b>${sync ? `<span class="muted" style="margin-left:8px">${sync}</span>` : ""}
     ${ACC.err ? `<p class="warn">${esc(ACC.err)}</p>` : ""}
-    ${u && !google ? `<p class="muted">Google 계정을 연결하면 기기를 바꿔도 기록이 이어져요.</p><button class="btn tiny" id="acc-google">Google로 기록 지키기</button>` : ""}
+    ${u && !google ? `<p class="${S.nick ? "warn" : "muted"}">${S.nick ? "⚠️ 지금은 이 기기 전용 계정이에요. 앱 데이터가 지워지거나 기기를 바꾸면 헌터명과 기록이 사라져요. Google로 연결해 두세요." : "Google로 로그인하면 헌터명을 등록하고, 로그아웃하거나 기기를 바꿔도 기록이 이어져요."}</p><button class="btn tiny" id="acc-google">Google로 로그인</button>` : ""}
     <div class="nav" style="justify-content:flex-start;gap:6px;flex-wrap:wrap;margin-top:8px">
       <button class="btn ghost tiny" id="acc-privacy">개인정보 안내</button>
       ${google ? `<button class="btn ghost tiny" id="acc-out">로그아웃</button>` : ""}
