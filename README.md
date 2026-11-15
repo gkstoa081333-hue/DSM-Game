@@ -9,6 +9,11 @@
 - `build.py` 위 파일을 합쳐 `index.html`(단일 파일, 오프라인 실행)을 만듦
 - `sw.js`, `manifest.webmanifest` PWA(홈 화면 설치, 오프라인)
 
+## 사실표 자동 출제 (data/facts.json)
+- `tools/make_facts.py`의 표(진단→범주, 진단 기준 기간, 약어, 약물 계열, 부작용, 학자, 방어기제)에서 문제를 양방향·"아닌 것" 형식으로 만들고, 오답은 같은 표에서 매번 새로 뽑아요.
+- 표에 행을 추가할 때는 **맨 뒤에만** 추가하세요(기록이 행 번호 키로 저장돼요). 수정 후 `python3 tools/make_facts.py && python3 build.py`.
+- 게임은 문항의 약 20%를 O/X로 바꿔 내요(레벨테스트·최종 보스 제외).
+
 ## 문제 추가·수정
 1. `data/questions.json`에 문항 추가 (`st`: 검수 전 `draft`, 검수 완료 `reviewed`)
 2. `python3 build.py` (형식 오류, 중복, 정답·오답 겹침을 검사)

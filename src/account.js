@@ -33,9 +33,9 @@ async function initAccount() {
 // 서버 기록과 기기 기록 합치기: 본 문제·도감·격파 관문은 합집합, 레벨테스트는 최신 결과, 기록은 높은 쪽
 function mergeInto(remote) {
   if (!remote) return;
-  (remote.seen || []).forEach(i => seen.add(i));
-  (remote.codex || []).forEach(i => codex.add(i));
-  (remote.wrong || []).forEach(i => { if (!codex.has(i) || wrong.has(i)) wrong.add(i); });
+  fromStored(remote.seen).forEach(i => seen.add(i));
+  fromStored(remote.codex).forEach(i => codex.add(i));
+  fromStored(remote.wrong).forEach(i => { if (!codex.has(i) || wrong.has(i)) wrong.add(i); });
   const rl = remote.level;
   if (rl && rl.date && (!S.level.date || rl.date > S.level.date || (rl.date === S.level.date && (rl.hist || []).length > (S.level.hist || []).length))) S.level = rl;
   if (remote.dojo) {
@@ -152,10 +152,10 @@ const PRIVACY_HTML = `<div class="privacy">
 
 // 게임 안 문제 신고 (계정 없이)
 function openReport(id) {
-  const m = META[id] || {}, box = document.getElementById("rep-" + id);
+  const m = QB[id] || {}, box = document.getElementById("rep-" + id);
   if (!box) return;
   if (!ACC.ready) { // 로그인 기능이 꺼져 있으면 GitHub Issue로
-    const body = encodeURIComponent(`문항 ID: ${m.key}\n문제: ${BANK[id][1]}\n표시된 정답: ${BANK[id][2][0]}\n\n무엇이 잘못됐나요?\n`);
+    const body = encodeURIComponent(`문항 ID: ${m.key}\n문제: ${QB[id].q}\n표시된 정답: ${QB[id].a}\n\n무엇이 잘못됐나요?\n`);
     window.open(`${REPO}/issues/new?title=${encodeURIComponent("[문제 신고] " + m.key)}&labels=report&body=${body}`, "_blank", "noopener");
     return;
   }

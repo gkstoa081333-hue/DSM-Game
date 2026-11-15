@@ -19,16 +19,69 @@ const BOSS={
 const DOMS=[D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12];
 const CORE=[D2,D3,D4,D6,D7,D11];
 
+// ===================== 문제 목록(QB): 고정 문항 + 사실표 자동 문항 =====================
+const OX_P=0.2;   // 고정·자동 문항 일부를 O/X로 바꿔 내는 비율(레벨테스트·최종 보스 제외)
+const QB=BANK.map((b,i)=>({d:b[0],q:b[1],a:b[2][0],w:b[2].slice(1),e:b[3],key:META[i].key,lv:META[i].lv,st:META[i].st,src:META[i].src}));
+// 받침에 따라 조사 고르기 (한글이 아니면 "은(는)"처럼 둘 다 표시)
+function J(w,a,b){const c=String(w).replace(/[)\]'"’”\s]+$/,"").slice(-1),k=c.charCodeAt(0)-0xAC00;if(k<0||k>11171)return w+a+"("+b+")";return w+((k%28)?a:b)}
+(function genFacts(){
+  const F=FACTS,DN=F.domains,uniq=a=>[...new Set(a)];
+  const add=o=>QB.push(Object.assign({st:"auto",src:F.src},o));
+  // 진단 → 범주 (정방향) / 범주에 속하지 않는 것 (헷갈리는 함정 정답)
+  const cats=uniq(F.cat.map(r=>r[1]));
+  F.cat.forEach((r,i)=>add({key:`f:cat:${i}`,d:DN.DSM,lv:1,q:`${J("'"+r[0]+"'",'은','는')} DSM-5의 어느 범주에 속하나?`,a:r[1],pool:cats.filter(c=>c!==r[1]),e:`${J(r[0],'은','는')} DSM-5에서 '${r[1]}' 범주예요.`}));
+  cats.forEach((c,i)=>{const mem=F.cat.filter(r=>r[1]===c).map(r=>r[0]);if(mem.length<3)return;
+    const trap=F.cat_trap[c]||F.cat.find(r=>r[1]!==c)[0],tc=(F.cat.find(r=>r[0]===trap)||[])[1];
+    add({key:`f:catneg:${i}`,d:DN.DSM,lv:2,neg:true,q:`다음 중 DSM-5 '${c}'에 속하지 않는 것은?`,a:trap,pool:mem,e:`${J(trap,'은','는')} '${tc}' 범주예요. '${c}'에는 ${J(mem.join(", "),'이','가')} 속해요.`})});
+  // 진단 기준 기간·나이 (양방향, 같은 종류끼리만 오답)
+  const kind=s=>/세 (이전|이상)$/.test(s)?"age":"dur",durs=uniq(F.dur.map(r=>r[2]));
+  F.dur.forEach((r,i)=>{
+    add({key:`f:dur:${i}`,d:r[0],lv:2,q:`'${r[1]}'의 DSM-5 기준은?`,a:r[2],pool:durs.filter(x=>x!==r[2]&&kind(x)===kind(r[2])),e:`${r[1]}: ${r[2]}.`});
+    if(F.dur.filter(x=>x[2]===r[2]).length===1&&kind(r[2])==="dur")
+      add({key:`f:durr:${i}`,d:r[0],lv:3,q:`DSM-5 기준이 '${r[2]}'인 것은?`,a:r[1],pool:F.dur.filter(x=>x[2]!==r[2]&&kind(x[2])==="dur").map(x=>x[1]),e:`${r[1]}의 기준이 ${r[2]}예요.`});
+  });
+  // 영어 약어 ↔ 뜻
+  F.abbr.forEach((r,i)=>{
+    add({key:`f:ab:${i}`,d:DN.ABBR,lv:1,q:`'${r[0]}'의 뜻은?`,a:r[1],pool:F.abbr.map(x=>x[1]).filter(x=>x!==r[1]),e:`${r[0]} = ${r[1]}.`});
+    add({key:`f:abr:${i}`,d:DN.ABBR,lv:2,q:`${J("'"+r[1]+"'",'을','를')} 뜻하는 약어는?`,a:r[0],pool:F.abbr.map(x=>x[0]).filter(x=>x!==r[0]),e:`${r[1]} = ${r[0]}.`});
+  });
+  // 약물 → 계열 / 계열에 속하지 않는 약
+  const classes=uniq(F.drug.map(r=>r[1]));
+  F.drug.forEach((r,i)=>add({key:`f:dg:${i}`,d:DN.TX,lv:2,q:`'${r[0]}'의 약물 계열은?`,a:r[1],pool:classes.filter(c=>c!==r[1]),e:`${J(r[0],'은','는')} ${r[1]}이에요.`}));
+  classes.forEach((c,i)=>{const mem=F.drug.filter(r=>r[1]===c).map(r=>r[0]),trap=F.drug_trap[c];if(mem.length<3||!trap)return;
+    const tc=F.drug.find(r=>r[0]===trap)[1];
+    add({key:`f:dgneg:${i}`,d:DN.TX,lv:3,neg:true,q:`다음 중 ${J(c,'이','가')} 아닌 약은?`,a:trap,pool:mem,e:`${J(trap,'은','는')} ${tc}이에요. ${c}: ${mem.join(", ")}.`})});
+  // 약물 ↔ 특히 주의할 부작용
+  F.adv.forEach((r,i)=>{
+    add({key:`f:adv:${i}`,d:DN.TX,lv:2,q:`'${r[0]}'에서 특히 주의해야 할 부작용은?`,a:r[1],pool:F.adv.map(x=>x[1]).filter(x=>x!==r[1]),e:`${r[0]}: ${r[1]}.`});
+    add({key:`f:advr:${i}`,d:DN.TX,lv:3,q:`${J("'"+r[1]+"'",'을','를')} 특히 주의해야 하는 약은?`,a:r[0],pool:F.adv.map(x=>x[0]).filter(x=>x!==r[0]),e:`${r[0]}: ${r[1]}.`});
+  });
+  // 학자 ↔ 개념
+  F.people.forEach((r,i)=>{
+    add({key:`f:pp:${i}`,d:DN.THY,lv:1,q:`${J(r[0],'과','와')} 관련 깊은 것은?`,a:r[1],pool:F.people.map(x=>x[1]).filter(x=>x!==r[1]),e:`${r[0]}: ${r[1]}.`});
+    add({key:`f:ppr:${i}`,d:DN.THY,lv:2,q:`${J("'"+r[1]+"'",'과','와')} 관련 깊은 학자는?`,a:r[0],pool:F.people.map(x=>x[0]).filter(x=>x!==r[0]),e:`${r[1]}: ${r[0]}.`});
+  });
+  // 방어기제 ↔ 예시
+  F.def.forEach((r,i)=>{
+    add({key:`f:df:${i}`,d:DN.THY,lv:2,q:`다음 예에 해당하는 방어기제는? "${r[1]}"`,a:r[0],pool:F.def.map(x=>x[0]).filter(x=>x!==r[0]),e:`'${r[0]}'의 예예요.`});
+    add({key:`f:dfr:${i}`,d:DN.THY,lv:3,q:`'${r[0]}'의 예로 가장 알맞은 것은?`,a:r[1],pool:F.def.map(x=>x[1]).filter(x=>x!==r[1]),e:`'${r[0]}'의 예예요.`});
+  });
+})();
+const KEY2ID={};QB.forEach((x,i)=>KEY2ID[x.key]=i);
+// 기록은 문항 키(문자열)로 저장. 예전 기록(숫자 번호)은 고정 문항 번호로 해석
+function fromStored(a){return (a||[]).map(x=>typeof x==="number"?(x<BANK.length?x:null):KEY2ID[x]).filter(x=>x!=null)}
+const toStored=set=>[...set].filter(i=>QB[i]).map(i=>QB[i].key);
+
 // ===================== 저장 =====================
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(_){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}}};
 const raw=store.get("pt_v4",null), old=raw?null:store.get("pt_v3",null), base=raw||old||{};
 const S={level:{t:-1,score:null,date:null,dom:{},hist:[]},dojo:{cleared:[],best:{},final:false},rec:{surv:0,ta:0,tests:0,duelW:0,duelL:0,duelD:0},nick:""};
 if(raw){Object.assign(S.level,raw.level||{});Object.assign(S.dojo,raw.dojo||{});Object.assign(S.rec,raw.rec||{});S.nick=raw.nick||""}
 else if(old&&old.rec){S.rec.surv=old.rec.surv||0;S.rec.ta=old.rec.ta||0}
-const seen=new Set(base.seen||store.get("dsm_seen",[]));
-const wrong=new Set(base.wrong||store.get("dsm_wrong",[]));
-const codex=new Set(base.codex||[]);
-function data(){return {level:S.level,dojo:S.dojo,rec:S.rec,nick:S.nick,seen:[...seen],wrong:[...wrong],codex:[...codex]}}
+const seen=new Set(fromStored(base.seen||store.get("dsm_seen",[])));
+const wrong=new Set(fromStored(base.wrong||store.get("dsm_wrong",[])));
+const codex=new Set(fromStored(base.codex||[]));
+function data(){return {level:S.level,dojo:S.dojo,rec:S.rec,nick:S.nick,seen:toStored(seen),wrong:toStored(wrong),codex:toStored(codex)}}
 function save(){store.set("pt_v4",data());if(typeof scheduleSync==="function")scheduleSync()}
 function curTier(){return S.dojo.final?TOP:S.level.t}
 function tierOf(score){let t=0;LT_CUT.forEach((c,k)=>{if(score>=c)t=k});return Math.min(t,CAP)}
@@ -38,9 +91,17 @@ const app=document.getElementById("app");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const shuf=a=>{for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a};
 const goTop=()=>{try{window.scrollTo({top:0,behavior:"smooth"})}catch(_){}};
-const ALL=BANK.map((_,i)=>i);
-const idsOf=d=>ALL.filter(i=>BANK[i][0]===d);
-function toQ(id){const b=BANK[id],o=shuf(b[2].slice());return {id,d:b[0],q:b[1],o,a:o.indexOf(b[2][0]),e:b[3],lv:(META[id]||{}).lv||2}}
+const ALL=QB.map((_,i)=>i);
+const idsOf=d=>ALL.filter(i=>QB[i].d===d);
+// 출제: 오답은 고정 문항이면 그대로, 자동 문항이면 같은 표에서 매번 새로 뽑음. 일부는 O/X로 변형
+function toQ(id,opt){
+  const x=QB[id],w=x.w?shuf(x.w.slice()):shuf(x.pool.filter(p=>p!==x.a)).slice(0,3);
+  if(!(opt&&opt.noOX)&&!x.neg&&!/않은|아닌|없는|않는|옳지/.test(x.q)&&Math.random()<OX_P){
+    const truth=Math.random()<0.5,shown=truth?x.a:w[0];
+    return {id,d:x.d,q:x.q,ox:shown,o:["⭕ 맞다","❌ 틀리다"],a:truth?0:1,e:(truth?"":`정답은 '${x.a}'예요. `)+x.e,lv:x.lv};
+  }
+  const o=shuf([x.a].concat(w));return {id,d:x.d,q:x.q,o,a:o.indexOf(x.a),e:x.e,lv:x.lv};
+}
 function pickIds(pool,n,ex){ex=ex||new Set();const f=shuf(pool.filter(i=>!seen.has(i)&&!ex.has(i))),o=shuf(pool.filter(i=>seen.has(i)&&!ex.has(i)));return f.concat(o).slice(0,n)}
 function buzz(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(_){}}
 function floatText(t,color){const d=document.createElement("div");d.className="float";d.textContent=t;if(color)d.style.color=color;document.body.appendChild(d);setTimeout(()=>d.remove(),1100)}
@@ -54,9 +115,9 @@ function shake(){setTimeout(()=>{const c=document.getElementById("qc");c&&c.clas
 // 출처·검수 상태·신고
 const REPO="https://github.com/gkstoa081333-hue/DSM-Game";
 function srcLine(id){
-  const m=META[id]||{};const s=m.src||{};
+  const m=QB[id]||{};const s=m.src||{};
   const t=s.u?`<a href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.t||"출처")}</a>`:esc(s.t||"");
-  return `<div class="src">${m.st==="draft"?`<span class="badge">검수 전</span>`:""}${t?`<span>출처: ${t}</span>`:""}<button class="rep" data-rep="${id}">🚩 문제 신고</button></div><div class="repbox" id="rep-${id}"></div>`;
+  return `<div class="src">${m.st==="draft"?`<span class="badge">검수 전</span>`:m.st==="auto"?`<span class="badge auto">사실표 출제</span>`:""}${t?`<span>출처: ${t}</span>`:""}<button class="rep" data-rep="${id}">🚩 문제 신고</button></div><div class="repbox" id="rep-${id}"></div>`;
 }
 // 판정: 본 문제·오답노트·도감 기록을 바로 반영
 function judge(q,k){
@@ -73,10 +134,10 @@ function qCard(q,r,opt){
     if(!r&&hid.has(k))return `<button class="opt gone" disabled>${k+1}. ─</button>`;
     let c="";if(r){if(k===q.a)c="ok";else if(k===q.pick)c="ng"}
     return `<button class="opt ${c}" data-k="${k}" ${r?"disabled":""}>${k+1}. ${esc(t)}</button>`}).join("");
-  const head=r==="ok"?"정답!":r==="ng"?(q.timeout?"⏰ 시간 초과! 정답은 ":"아쉬워요, 정답은 ")+(q.a+1)+"번":"정답은 "+(q.a+1)+"번이에요";
+  const ans=q.ox!=null?(q.a===0?"⭕":"❌"):(q.a+1)+"번";const head=r==="ok"?"정답!":r==="ng"?(q.timeout?"⏰ 시간 초과! 정답은 ":"아쉬워요, 정답은 ")+ans:"정답은 "+ans+"이에요";
   return `<div class="card" id="qc">
    <div class="meta"><span class="tag">${q.d}</span><span>${opt.showLv?`<span class="lv">${stars(q.lv)}</span> `:""}${opt.counter||""}</span></div>
-   <p class="q">${esc(q.q)}</p>${btns}
+   <p class="q">${q.ox!=null?`<span class="oxtag">O/X</span> `:""}${esc(q.q)}</p>${q.ox!=null?`<div class="oxbox">👉 ${esc(q.ox)}</div>`:""}${btns}
    ${opt.noIdk?"":`<button class="idkbtn" id="idk" ${r?"disabled":""}>🤔 모름 (정답 보기)</button>`}
    ${r&&!opt.hideFb?`<div class="fb ${r}"><div class="h">${head}${opt.gain?`<span class="gain">${opt.gain}</span>`:""}</div>${esc(q.e)}${srcLine(q.id)}</div>`:""}
    ${r?`<div class="nav"><button class="btn" id="next">${opt.nextLabel||"다음 →"}</button></div>`:""}
@@ -100,7 +161,7 @@ function lobby(){
   stopAll();
   const t=curTier(),L=S.level,T=TIERS[t]||{c:"#4a5068"};
   const h=L.hist||[],prev=h.length>1?h[h.length-2].score:null,delta=prev!=null&&L.score!=null?L.score-prev:null;
-  const cleared=S.dojo.cleared.length,unseen=BANK.length-[...seen].filter(i=>i<BANK.length).length;
+  const cleared=S.dojo.cleared.length,unseen=QB.length-[...seen].filter(i=>i<QB.length).length;
   app.innerHTML=`
   <div class="card rankcard" style="--tc:${T.c}">
     ${emblem(t,92)}
@@ -119,11 +180,11 @@ function lobby(){
     <button class="mode" id="m-ta"><span class="mi">⏱️</span><b>타임어택</b><small>20문항 · 20초 · 최고 ${S.rec.ta}점</small></button>
     <button class="mode" id="m-surv"><span class="mi">❤️</span><b>생존 모드</b><small>하트 3개 · 최고 ${S.rec.surv}문제</small></button>
     <button class="mode" id="m-rv" ${wrong.size?"":"disabled"}><span class="mi">📕</span><b>오답 복습</b><small>오답노트 ${wrong.size}문항</small></button>
-    <button class="mode" id="m-cx"><span class="mi">📖</span><b>진단명 도감</b><small>${codex.size} / ${BANK.length} 수집</small></button>
+    <button class="mode" id="m-cx"><span class="mi">📖</span><b>진단명 도감</b><small>${codex.size} / ${QB.length} 수집</small></button>
   </div>
   <div class="card small" id="acc-wrap">${accountCardHTML()}</div>
   <div class="card small">
-    <div class="stats"><div><b>${S.rec.tests}</b><small>레벨테스트</small></div><div><b>${cleared}</b><small>격파 관문</small></div><div><b>${unseen}</b><small>안 푼 문항</small></div><div><b>${Math.round(codex.size/BANK.length*100)}%</b><small>도감 완성</small></div></div>
+    <div class="stats"><div><b>${S.rec.tests}</b><small>레벨테스트</small></div><div><b>${cleared}</b><small>격파 관문</small></div><div><b>${unseen}</b><small>안 푼 문항</small></div><div><b>${Math.round(codex.size/QB.length*100)}%</b><small>도감 완성</small></div></div>
     <details><summary>게임 규칙 보기</summary>
      <ul class="rules">
       <li><b>레벨테스트:</b> ${LT_N}문항. 영역마다 중간 난이도(★★)로 시작해서, 맞히면 더 어려운 문제, 틀리면 쉬운 문제가 나와요. 어려운 문제일수록 점수 비중이 커요.</li>
@@ -159,10 +220,10 @@ function startLT(){
 }
 function pickLv(d,lv){
   const pool=idsOf(d).filter(i=>!G.used.has(i));
-  for(const dl of [0,1,-1,2,-2]){const want=lv+dl;const c=pool.filter(i=>(META[i]||{}).lv===want);if(c.length){const f=c.filter(i=>!seen.has(i));return shuf(f.length?f:c)[0]}}
+  for(const dl of [0,1,-1,2,-2]){const want=lv+dl;const c=pool.filter(i=>QB[i].lv===want);if(c.length){const f=c.filter(i=>!seen.has(i));return shuf(f.length?f:c)[0]}}
   return shuf(pool)[0];
 }
-function ltNext(){const d=G.plan[G.i];const id=pickLv(d,G.lv[d]);G.used.add(id);G.q=toQ(id);ltQ()}
+function ltNext(){const d=G.plan[G.i];const id=pickLv(d,G.lv[d]);G.used.add(id);G.q=toQ(id,{noOX:true});ltQ()}
 function ltQ(){
   const q=G.q,n=G.plan.length;
   app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">🎯 레벨테스트</span><span class="muted">${G.i+1} / ${n}</span></div>
@@ -215,7 +276,7 @@ function practiceMenu(){
 }
 function startPractice(sel){
   const weak=Object.entries(S.level.dom||{}).sort((a,b)=>a[1]-b[1]).slice(0,3).map(([k])=>k);
-  const pool=sel==="all"?ALL:sel==="weak"?ALL.filter(i=>weak.includes(BANK[i][0])):idsOf(sel);
+  const pool=sel==="all"?ALL:sel==="weak"?ALL.filter(i=>weak.includes(QB[i].d)):idsOf(sel);
   const w=shuf(pool.filter(i=>wrong.has(i)));const ids=w.concat(pickIds(pool,PR_N,new Set(w))).slice(0,PR_N);
   const label=sel==="all"?"전체 섞기":sel==="weak"?"약점 집중":sel;
   G={mode:"pr",sel,label,qs:ids.map(toQ),i:0};prQ();
@@ -251,7 +312,7 @@ function dojoMap(){
 function startDojo(d){G={mode:"dj",d,qs:pickIds(idsOf(d),DOJO_N).map(toQ),i:0,ok:0,ng:0,pass:DOJO_PASS,fail:DOJO_N-DOJO_PASS+1,boss:BOSS[d]};djQ()}
 function startFinal(){
   const per=Math.ceil(FINAL_N/DOMS.length),ids=[];DOMS.forEach(d=>pickIds(idsOf(d),per).forEach(i=>ids.push(i)));
-  G={mode:"fin",d:"전 영역",qs:shuf(ids).slice(0,FINAL_N).map(toQ),i:0,ok:0,ng:0,pass:FINAL_PASS,fail:FINAL_N-FINAL_PASS+1,boss:{e:"🏖️",n:"퇴사 시험"}};djQ();
+  G={mode:"fin",d:"전 영역",qs:shuf(ids).slice(0,FINAL_N).map(i=>toQ(i,{noOX:true})),i:0,ok:0,ng:0,pass:FINAL_PASS,fail:FINAL_N-FINAL_PASS+1,boss:{e:"🏖️",n:"퇴사 시험"}};djQ();
 }
 function djQ(hit){
   const q=G.qs[G.i],hp=Math.max(0,100-Math.round(G.ok/G.pass*100));
@@ -323,14 +384,14 @@ async function rankingView(tab){
 
 // ===================== ❤️ 생존 모드 =====================
 function startSurv(){
-  const ids=pickIds(ALL,BANK.length);
+  const ids=pickIds(ALL,QB.length);
   G={mode:"surv",queue:ids,i:0,hearts:3,score:0,fifty:2,revive:1,q:null,hidden:new Set()};
   G.q=toQ(G.queue[0]);survQ();
 }
 function survQ(){
   const q=G.q;
   app.innerHTML=`<div class="arena"><div class="plrow"><span class="hearts big">${"❤️".repeat(G.hearts)}${"🖤".repeat(3-G.hearts)}</span><span class="score">🏅 ${G.score}문제</span></div>
-   <div class="items"><button class="item" id="ff" ${G.fifty&&!q.r?"":"disabled"}>✂️ 50:50 ×${G.fifty}</button><span class="item ghost">💖 부활 ×${G.revive}</span><span class="muted" style="margin-left:auto">최고 ${S.rec.surv}문제</span></div></div>`+
+   <div class="items"><button class="item" id="ff" ${G.fifty&&!q.r&&q.o.length===4?"":"disabled"}>✂️ 50:50 ×${G.fifty}</button><span class="item ghost">💖 부활 ×${G.revive}</span><span class="muted" style="margin-left:auto">최고 ${S.rec.surv}문제</span></div></div>`+
    qCard(q,q.r,{counter:`${G.i+1}번째`,hidden:G.hidden,nextLabel:G.hearts===0?"게임 오버…":"다음 →"});
   on("ff",()=>{if(!G.fifty)return;G.fifty--;G.hidden=new Set(shuf([0,1,2,3].filter(k=>k!==q.a)).slice(0,2));survQ()});
   bindQ(k=>{q.pick=k;q.r=judge(q,k);if(q.r==="ok"){G.score++;setTimeout(()=>floatText("+1","#3ddc97"),30)}else{G.hearts--;shake();buzz([60,40,60])}survQ()},survNext);
@@ -395,13 +456,13 @@ function rvEnd(){
 
 // ===================== 📖 도감 =====================
 function showCodex(){
-  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">📖 진단명 도감</span><span class="score">${codex.size} / ${BANK.length}</span></div>
-   <div class="lpbar" style="max-width:none"><i style="width:${codex.size/BANK.length*100}%"></i></div><p class="muted" style="margin:6px 0 0">문제를 맞히면 카드가 열려요. 열린 카드를 누르면 해설을 다시 볼 수 있어요.</p></div>
+  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">📖 진단명 도감</span><span class="score">${codex.size} / ${QB.length}</span></div>
+   <div class="lpbar" style="max-width:none"><i style="width:${codex.size/QB.length*100}%"></i></div><p class="muted" style="margin:6px 0 0">문제를 맞히면 카드가 열려요. 열린 카드를 누르면 해설을 다시 볼 수 있어요.</p></div>
    ${DOMS.map(d=>{const ids=idsOf(d),got=ids.filter(i=>codex.has(i)).length;return `<div class="card"><div class="cxhead"><span>${BOSS[d].e} <b>${d}</b></span><span class="muted">${got}/${ids.length}${got===ids.length?" · 🏅 완성":""}</span></div>
-     <div class="cards">${ids.map(i=>codex.has(i)?`<button class="cx on" data-i="${i}">${esc(BANK[i][2][0].length>26?BANK[i][2][0].slice(0,25)+"…":BANK[i][2][0])}</button>`:`<span class="cx">?</span>`).join("")}</div></div>`}).join("")}
+     <div class="cards">${ids.map(i=>codex.has(i)?`<button class="cx on" data-i="${i}">${esc(QB[i].a.length>26?QB[i].a.slice(0,25)+"…":QB[i].a)}</button>`:`<span class="cx">?</span>`).join("")}</div></div>`}).join("")}
    <div id="modal"></div><div class="nav" style="justify-content:center"><button class="btn ghost" id="lb">로비로</button></div>`;
   on("lb",lobby);
-  app.querySelectorAll(".cx.on").forEach(b=>b.onclick=()=>{const x=BANK[+b.dataset.i];document.getElementById("modal").innerHTML=`<div class="modal" id="mbg"><div class="card mcard"><div class="meta"><span class="tag">${x[0]}</span></div><p class="q">${esc(x[1])}</p><p class="a" style="color:var(--ok);font-weight:700">✔ ${esc(x[2][0])}</p><p class="muted" style="font-size:.92rem">${esc(x[3])}</p><div class="nav"><button class="btn" id="mx">닫기</button></div></div></div>`;
+  app.querySelectorAll(".cx.on").forEach(b=>b.onclick=()=>{const x=QB[+b.dataset.i];document.getElementById("modal").innerHTML=`<div class="modal" id="mbg"><div class="card mcard"><div class="meta"><span class="tag">${x.d}</span></div><p class="q">${esc(x.q)}</p><p class="a" style="color:var(--ok);font-weight:700">✔ ${esc(x.a)}</p><p class="muted" style="font-size:.92rem">${esc(x.e)}</p><div class="nav"><button class="btn" id="mx">닫기</button></div></div></div>`;
     on("mx",()=>document.getElementById("modal").innerHTML="");document.getElementById("mbg").onclick=e=>{if(e.target.id==="mbg")document.getElementById("modal").innerHTML=""}});
   goTop();
 }

@@ -22,6 +22,7 @@ names = [d['name'] for d in data['domains']]
 js = ''.join(f'const D{i+1}={json.dumps(n, ensure_ascii=False)};' for i, n in enumerate(names)) + '\n'
 js += 'const BANK=' + json.dumps([[q['d'], q['q'], [q['a']] + q['w'], q['e']] for q in data['questions']], ensure_ascii=False) + ';\n'
 js += 'const META=' + json.dumps([{'key': q['id'], 'lv': q['lv'], 'st': q['st'], 'src': {k: v for k, v in q['src'].items() if k in ('t', 'u')}} for q in data['questions']], ensure_ascii=False) + ';\n'
+js += 'const FACTS=' + (root / 'data/facts.json').read_text(encoding='utf8').replace('\n','') + ';\n'
 js += 'const STUDY={' + ','.join(f'[D{i+1}]:{json.dumps(d["study"], ensure_ascii=False)}' for i, d in enumerate(data['domains'])) + '};\n'
 shell = (root / 'src/shell.html').read_text(encoding='utf8')
 engine = (root / 'src/account.js').read_text(encoding='utf8') + '\n' + (root / 'src/engine.js').read_text(encoding='utf8')
