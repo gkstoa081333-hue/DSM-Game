@@ -1,13 +1,13 @@
 {
- "name": "정신의학·DSM-5 랭크전",
- "short_name": "DSM 랭크전",
+ "name": "나 혼자만 수련레벨업",
+ "short_name": "수련레벨업",
  "description": "정신건강전문요원 수련 필기 대비 퀴즈 게임",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
  "orientation": "portrait",
- "background_color": "#10121a",
- "theme_color": "#10121a",
+ "background_color": "#05080f",
+ "theme_color": "#05080f",
  "lang": "ko",
  "icons": [
   {

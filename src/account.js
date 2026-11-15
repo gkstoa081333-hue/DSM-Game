@@ -44,7 +44,11 @@ function mergeInto(remote) {
     for (const [k, v] of Object.entries(remote.dojo.best || {})) S.dojo.best[k] = Math.max(S.dojo.best[k] || 0, v);
     S.dojo.final = S.dojo.final || !!remote.dojo.final;
   }
-  if (remote.rec) for (const k of Object.keys(remote.rec)) S.rec[k] = Math.max(S.rec[k] || 0, remote.rec[k] || 0);
+  if (remote.rec) for (const k of Object.keys(remote.rec)) {
+    const v = remote.rec[k];
+    if (typeof v === "number") S.rec[k] = Math.max(S.rec[k] || 0, v);
+    else if (k === "daily" && v && (!S.rec.daily || (v.date || "") > (S.rec.daily.date || ""))) S.rec.daily = v;
+  }
   if (!S.nick && remote.nick) S.nick = remote.nick;
 }
 function snapshot() {
@@ -114,7 +118,7 @@ function accountCardHTML() {
   const u = ACC.user, google = u && u.providerData.some(p => p.providerId === "google.com");
   const who = !u ? "연결 중…" : google ? `Google 계정 (${esc(u.email || "")})` : "익명 계정 (이 기기 전용)";
   const sync = ACC.lastSync ? `마지막 동기화 ${ACC.lastSync.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}` : "";
-  const nickLine = S.nick ? `<div class="nickline">🏷️ 닉네임 <b>${esc(S.nick)}</b> <button class="btn ghost tiny" id="acc-nick">변경</button></div>` : "";
+  const nickLine = S.nick ? `<div class="nickline">🏷️ 헌터명 <b>${esc(S.nick)}</b> <button class="btn ghost tiny" id="acc-nick">변경</button></div>` : "";
   return `<div class="acc">${nickLine}<b>👤 ${who}</b>${sync ? `<span class="muted" style="margin-left:8px">${sync}</span>` : ""}
     ${ACC.err ? `<p class="warn">${esc(ACC.err)}</p>` : ""}
     ${u && !google ? `<p class="muted">Google 계정을 연결하면 기기를 바꿔도 기록이 이어져요.</p><button class="btn tiny" id="acc-google">Google로 기록 지키기</button>` : ""}
@@ -141,11 +145,11 @@ function refreshAccountCard() {
 const PRIVACY_HTML = `<div class="privacy">
  <b>개인정보 수집·이용 안내</b>
  <ul>
-  <li><b>수집하는 것:</b> 계정 식별번호(무작위 ID), 학습 기록(레벨테스트 결과, 푼 문제, 오답노트, 도감, 도장깨기), 직접 정한 닉네임, 랭킹용 게임 기록(등급·점수·도장깨기·타임어택·생존), 문제 신고 내용. Google 계정을 연결하면 로그인 확인을 위해 이메일 주소가 Firebase 인증에 저장돼요.</li>
+  <li><b>수집하는 것:</b> 계정 식별번호(무작위 ID), 학습 기록(각성 측정 결과, 푼 문제, 패널티 존, 그림자 군단, 게이트 공략, 일일 퀘스트), 직접 정한 헌터명(닉네임), 랭킹용 게임 기록(등급·점수·게이트·긴급 퀘스트·던전 브레이크), 문제 신고 내용. Google 계정을 연결하면 로그인 확인을 위해 이메일 주소가 Firebase 인증에 저장돼요.</li>
   <li><b>수집하지 않는 것:</b> 실명, 소속, 연락처, 위치</li>
   <li><b>목적:</b> 기기 간 학습 기록 동기화, 문제 오류 수정</li>
   <li><b>보관:</b> 직접 삭제하거나 서비스를 종료할 때까지. 「내 데이터 삭제」를 누르면 서버 기록과 계정이 바로 지워져요.</li>
-  <li><b>공개 범위:</b> 닉네임과 랭킹용 게임 기록은 이 게임을 쓰는 다른 사용자에게 랭킹으로 보여요. 푼 문제·오답노트 같은 학습 기록은 나만 볼 수 있어요. 실명 대신 별명을 써주세요.</li>
+  <li><b>공개 범위:</b> 헌터명과 랭킹용 게임 기록은 이 게임을 쓰는 다른 사용자에게 랭킹으로 보여요. 푼 문제·오답노트 같은 학습 기록은 나만 볼 수 있어요. 실명 대신 별명을 써주세요.</li>
   <li><b>처리 위탁:</b> Google Firebase(인증·데이터 저장)</li>
   <li><b>문의:</b> 운영자 김한샘</li>
  </ul></div>`;

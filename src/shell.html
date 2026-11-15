@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#10121a">
-<meta name="description" content="정신건강전문요원 수련 필기 대비 정신의학·DSM-5 랭크전 퀴즈">
+<meta name="theme-color" content="#05080f">
+<meta name="description" content="정신건강전문요원 수련 필기 대비 나 혼자만 수련레벨업: 정신의학·DSM-5 퀴즈 게임">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="DSM 랭크전">
+<meta name="apple-mobile-web-app-title" content="수련레벨업">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>정신의학·DSM-5 랭크전</title>
+<title>나 혼자만 수련레벨업</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#10121a;--card:#1b1f2e;--card2:#252a3d;--ink:#eef0f6;--sub:#9aa1b5;--line:#323850;--acc:#7c6cff;--gold:#ffc94d;--ok:#3ddc97;--ng:#ff6b6b}
+:root{--bg:#05080f;--card:#0b1322;--card2:#121d33;--ink:#e9f2ff;--sub:#8ea3c4;--line:#1d3557;--acc:#2f8cff;--gold:#ffc94d;--ok:#3ddc97;--ng:#ff5d73;--glow:0 0 0 1px rgba(64,156,255,.35),0 0 18px rgba(47,140,255,.18)}
 *{box-sizing:border-box}
-html{background:#10121a;-webkit-text-size-adjust:100%}
+html{background:#05080f;-webkit-text-size-adjust:100%}
 button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-body{margin:0;background:radial-gradient(circle at 50% -10%,#2b2452,var(--bg) 55%);background-attachment:fixed;color:var(--ink);font-family:'Noto Sans KR',system-ui,sans-serif;line-height:1.6;min-height:100vh}
+body{margin:0;background:radial-gradient(circle at 50% -10%,#0f2a52,var(--bg) 55%);background-attachment:fixed;color:var(--ink);font-family:'Noto Sans KR',system-ui,sans-serif;line-height:1.6;min-height:100vh}
 .wrap{max-width:680px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(60px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left))}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:12px}
 .card.small{padding:14px}
@@ -34,7 +34,7 @@ body{margin:0;background:radial-gradient(circle at 50% -10%,#2b2452,var(--bg) 55
 .emblem{margin:0 auto;border-radius:24%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--tc) 70%,#fff),var(--tc) 55%,color-mix(in srgb,var(--tc) 50%,#000));box-shadow:0 0 0 3px color-mix(in srgb,var(--tc) 40%,transparent),0 8px 26px color-mix(in srgb,var(--tc) 40%,transparent);transform:rotate(45deg)}
 .emblem{line-height:1}.emblem::before{content:none}
 .emblem>*{transform:rotate(-45deg)}
-.rk-name{font-size:1.6rem;font-weight:900;margin-top:14px;color:var(--tc)}
+.rk-name{font-size:1.6rem;font-weight:900;margin-top:20px;color:var(--tc)}
 .rk-sub{color:var(--sub);font-size:.9rem}
 .lpbar{height:10px;background:var(--card2);border-radius:99px;overflow:hidden;margin:8px auto 0;max-width:360px}
 .lpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#ff9d4d);transition:width .6s}
@@ -48,9 +48,9 @@ body{margin:0;background:radial-gradient(circle at 50% -10%,#2b2452,var(--bg) 55
 .mode{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:left;color:inherit;font:inherit;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:transform .1s,border-color .2s}
 .mode:hover:not(:disabled){border-color:var(--acc)}.mode:active:not(:disabled){transform:scale(.97)}
 .mode:disabled{opacity:.45;cursor:default}
-.mode.main{grid-column:1/-1;background:linear-gradient(135deg,#3a2f8f,#5a2f8f);border-color:#6d5cff}
+.mode.main{grid-column:1/-1;background:linear-gradient(135deg,#0d3b80,#1a5fd1);border-color:#4aa3ff;box-shadow:0 0 22px rgba(47,140,255,.35)}
 .mode .mi{font-size:1.6rem}.mode b{font-size:1.02rem}.mode small{color:var(--sub);font-size:.8rem}
-.mode.main small{color:#d7d0ff}
+.mode.main small{color:#cfe4ff}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
 .stats div{background:var(--card2);border-radius:12px;padding:9px 4px;text-align:center}
 .stats b{display:block;font-size:1.15rem}.stats small{color:var(--sub);font-size:.7rem}
@@ -126,6 +126,22 @@ input#nick,.joinrow input{width:100%;background:var(--card2);color:var(--ink);bo
 .oxtag{background:var(--acc);color:#fff;border-radius:6px;padding:1px 6px;font-size:.75rem;vertical-align:middle}
 .oxbox{background:var(--card2);border-left:4px solid var(--gold);border-radius:10px;padding:12px 14px;margin:-4px 0 14px;font-weight:700}
 .badge.auto{background:rgba(124,108,255,.18);color:#c9c2ff}
+.gametitle{text-align:center;font-weight:900;font-size:1.35rem;letter-spacing:.5px;margin:4px 0 12px;color:#dbe9ff;text-shadow:0 0 14px rgba(47,140,255,.6)}
+.gametitle small{display:block;font-size:.72rem;font-weight:500;color:var(--sub);letter-spacing:0;text-shadow:none}
+.gametitle b{color:#5fb0ff}
+.card,.arena,.mode{box-shadow:var(--glow)}
+.emblem{position:relative}.emblem .rkl{position:absolute;right:-6px;bottom:-6px;transform:rotate(-45deg);background:#05080f;border:2px solid var(--tc);color:var(--tc);border-radius:8px;padding:0 6px;line-height:1.4}
+.hname{display:block;margin-top:24px;font-size:.85rem;color:var(--sub);font-weight:700}
+.ladder span b{font-size:1.1rem;color:var(--tc)}
+.sysbg{position:fixed;inset:0;background:rgba(2,6,14,.7);display:flex;align-items:center;justify-content:center;z-index:80;padding:20px;animation:fadein .2s}
+.sys{width:100%;max-width:380px;background:linear-gradient(180deg,rgba(10,30,62,.96),rgba(6,16,34,.96));border:1.5px solid #4aa3ff;border-radius:6px;box-shadow:0 0 30px rgba(47,140,255,.55),inset 0 0 20px rgba(47,140,255,.15);padding:18px 18px 14px;text-align:center;color:#e6f1ff}
+.syshead{display:inline-block;border:1px solid #4aa3ff;padding:2px 14px;margin-bottom:10px;font-weight:900;letter-spacing:2px;color:#9fd0ff}
+.sys p{margin:6px 0;font-weight:700}
+.sysok{margin-top:12px;background:transparent;border:1px solid #4aa3ff;color:#9fd0ff;border-radius:4px;padding:6px 24px;font:inherit;font-weight:700;cursor:pointer}
+.systag{color:#5fb0ff;font-weight:900;letter-spacing:2px}
+.shadow{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:rgba(8,10,20,.92);border:1px solid #6a5cff;color:#cfc8ff;padding:8px 16px;border-radius:99px;font-weight:700;font-size:.85rem;z-index:70;box-shadow:0 0 18px rgba(106,92,255,.5);animation:fl2 1.3s forwards;pointer-events:none}
+@keyframes fl2{0%{opacity:0;transform:translate(-50%,10px)}15%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
 .badge{background:rgba(255,201,77,.15);color:var(--gold);border-radius:99px;padding:1px 8px;font-weight:700}
 .gain{color:var(--gold);font-weight:700;margin-left:8px;font-size:.88rem}
 .nav{display:flex;justify-content:flex-end;margin-top:12px}

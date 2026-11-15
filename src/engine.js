@@ -1,10 +1,10 @@
 // ===================== 설정 =====================
 const TIERS=[
- {n:"미생",c:"#9aa1b5",e:"🌱"},
- {n:"수련준비생",c:"#4fd1a0",e:"📘"},
- {n:"수련생",c:"#4da3ff",e:"🩺"},
- {n:"전문요원",c:"#b46cff",e:"🎖️"},
- {n:"퇴사",c:"#ffc94d",e:"🏖️"}
+ {n:"미생",r:"E",c:"#8a96ad",e:"🌱"},
+ {n:"수련준비생",r:"C",c:"#3fd1a0",e:"📘"},
+ {n:"수련생",r:"B",c:"#3fa0ff",e:"🩺"},
+ {n:"전문요원",r:"A",c:"#a46cff",e:"🎖️"},
+ {n:"퇴사",r:"S",c:"#ffc94d",e:"🏖️"}
 ];
 const TOP=4, CAP=3;                 // 레벨테스트로는 전문요원(3)까지, 퇴사(4)는 최종 보스로만
 const LT_CUT=[0,40,60,75];          // 레벨테스트 점수 → 미생/수련준비생/수련생/전문요원
@@ -105,11 +105,12 @@ function toQ(id,opt){
 function pickIds(pool,n,ex){ex=ex||new Set();const f=shuf(pool.filter(i=>!seen.has(i)&&!ex.has(i))),o=shuf(pool.filter(i=>seen.has(i)&&!ex.has(i)));return f.concat(o).slice(0,n)}
 function buzz(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(_){}}
 function floatText(t,color){const d=document.createElement("div");d.className="float";d.textContent=t;if(color)d.style.color=color;document.body.appendChild(d);setTimeout(()=>d.remove(),1100)}
-function emblem(t,size){const T=TIERS[t]||{c:"#4a5068",e:"?"};return `<div class="emblem" style="--tc:${T.c};width:${size}px;height:${size}px;font-size:${size*.42}px"><span>${T.e}</span></div>`}
-const tierName=t=>t<0?"등급 미정":TIERS[t].n;
+function emblem(t,size){const T=TIERS[t]||{c:"#4a5068",e:"?",r:"?"};return `<div class="emblem" style="--tc:${T.c};width:${size}px;height:${size}px;font-size:${size*.42}px"><span>${T.e}</span><b class="rkl" style="font-size:${Math.max(11,size*.2)}px">${T.r}</b></div>`}
+const tierName=t=>t<0?"미각성":`${TIERS[t].r}급 ${TIERS[t].n}`;
 const stars=lv=>"★".repeat(lv)+"☆".repeat(3-lv);
 const on=(id,f)=>{const e=document.getElementById(id);if(e)e.onclick=f};
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+function shadowToast(){const t=document.createElement("div");t.className="shadow";t.textContent="🌑 그림자 추출 — 일어나라";document.body.appendChild(t);setTimeout(()=>t.remove(),1300)}
 function shake(){setTimeout(()=>{const c=document.getElementById("qc");c&&c.classList.add("shake")},10)}
 
 // 출처·검수 상태·신고
@@ -123,7 +124,7 @@ function srcLine(id){
 function judge(q,k){
   seen.add(q.id);
   const r=k===-1?"idk":k===q.a?"ok":"ng";
-  if(r==="ok"){wrong.delete(q.id);codex.add(q.id)}else wrong.add(q.id);
+  if(r==="ok"){wrong.delete(q.id);if(!codex.has(q.id)){codex.add(q.id);setTimeout(()=>shadowToast(),60)}}else wrong.add(q.id);
   save();return r;
 }
 
@@ -154,6 +155,21 @@ function domBars(dom){
     return `<div class="row"><span>${(BOSS[k]||{}).e||""} ${k}</span><span class="b"><i style="width:${v}%;background:${col}"></i></span><span>${v}</span></div>`}).join("");
 }
 
+// ===================== 시스템 창 =====================
+function systemMsg(lines,title){
+  const d=document.createElement("div");d.className="sysbg";
+  d.innerHTML=`<div class="sys"><div class="syshead">${esc(title||"알림")}</div>${lines.map(l=>`<p>${esc(l)}</p>`).join("")}<button class="sysok">확인</button></div>`;
+  document.body.appendChild(d);buzz(20);
+  const close=()=>d.remove();d.querySelector(".sysok").onclick=close;d.onclick=ev=>{if(ev.target===d)close()};
+}
+// 일일 퀘스트: 하루 한 번 완료하면 연속 달성
+function dailyLabel(){const q=S.rec.daily||{};return q.date===today()?`오늘 완료 ✅ · 연속 ${q.streak||1}일`:`오늘의 퀘스트 미완료 · 연속 ${q.streak&&q.date===yesterday()?q.streak:0}일`}
+function yesterday(){const d=new Date(Date.now()-864e5);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function completeDaily(){
+  const q=S.rec.daily||{};if(q.date===today())return false;
+  const streak=q.date===yesterday()?(q.streak||0)+1:1;S.rec.daily={date:today(),streak};save();return streak;
+}
+
 // ===================== 로비 =====================
 let timer=null,unsub=null;
 function stopAll(){clearInterval(timer);if(unsub){try{unsub()}catch(_){}unsub=null}}
@@ -163,34 +179,35 @@ function lobby(){
   const h=L.hist||[],prev=h.length>1?h[h.length-2].score:null,delta=prev!=null&&L.score!=null?L.score-prev:null;
   const cleared=S.dojo.cleared.length,unseen=QB.length-[...seen].filter(i=>i<QB.length).length;
   app.innerHTML=`
+  <div class="gametitle"><small>정신건강전문요원 수련 필기 대비</small>나 혼자만 <b>수련레벨업</b></div>
   <div class="card rankcard" style="--tc:${T.c}">
     ${emblem(t,92)}
-    <div class="rk-name">${tierName(t)}</div>
-    ${t<0?`<div class="rk-sub">레벨테스트로 지금 실력을 확인해 보세요</div>`
-      :`<div class="rk-sub">레벨테스트 ${L.score}점${delta!=null?` <b style="color:${delta>=0?"var(--ok)":"var(--ng)"}">(${delta>=0?"+":""}${delta})</b>`:""} · ${L.date||""}${S.dojo.final?" · 최종 보스 격파":""}</div>`}
-    <div class="ladder">${TIERS.map((x,k)=>`<span class="${k===t?"on":k<t?"done":""}" style="--tc:${x.c}">${x.e}<small>${x.n}</small></span>`).join("")}</div>
-    ${t===CAP&&!S.dojo.final?`<p class="muted" style="margin:10px 0 0">🏖️ 퇴사는 도장깨기 ${DOMS.length}관문을 모두 깨고 최종 보스를 이겨야 얻어요</p>`:""}
+    <div class="rk-name">${S.nick?`<span class="hname">${esc(S.nick)}</span>`:""}${tierName(t)}</div>
+    ${t<0?`<div class="rk-sub">각성 측정으로 헌터 등급을 확인하세요</div>`
+      :`<div class="rk-sub">각성 측정 ${L.score}점${delta!=null?` <b style="color:${delta>=0?"var(--ok)":"var(--ng)"}">(${delta>=0?"+":""}${delta})</b>`:""} · ${L.date||""}${S.dojo.final?" · 최종 보스 격파":""}</div>`}
+    <div class="ladder">${TIERS.map((x,k)=>`<span class="${k===t?"on":k<t?"done":""}" style="--tc:${x.c}"><b>${x.r}</b><small>${x.n}</small></span>`).join("")}</div>
+    ${t===CAP&&!S.dojo.final?`<p class="muted" style="margin:10px 0 0">🏖️ S급(퇴사)은 게이트 ${DOMS.length}개를 모두 클리어하고 S급 게이트를 넘어야 얻어요</p>`:""}
     <div class="install" id="inst"></div>
   </div>
   <div class="modes">
-    <button class="mode main" id="m-lt"><span class="mi">🎯</span><b>레벨테스트</b><small>${LT_N}문항 · 맞히면 어려워지는 적응형 · 결과로 등급 결정</small></button>
-    <button class="mode" id="m-pr"><span class="mi">📝</span><b>일반 모드</b><small>영역 골라 ${PR_N}문항씩 연습</small></button>
-    <button class="mode" id="m-dj"><span class="mi">🏯</span><b>도장깨기</b><small>${cleared} / ${DOMS.length} 관문 ${S.dojo.final?"· 퇴사 완료":""}</small></button>
-    <button class="mode" id="m-rk"><span class="mi">🏆</span><b>랭킹</b><small>${S.nick?esc(S.nick)+"님의 순위 보기":"동료들과 기록 겨루기"}</small></button>
-    <button class="mode" id="m-ta"><span class="mi">⏱️</span><b>타임어택</b><small>20문항 · 20초 · 최고 ${S.rec.ta}점</small></button>
-    <button class="mode" id="m-surv"><span class="mi">❤️</span><b>생존 모드</b><small>하트 3개 · 최고 ${S.rec.surv}문제</small></button>
-    <button class="mode" id="m-rv" ${wrong.size?"":"disabled"}><span class="mi">📕</span><b>오답 복습</b><small>오답노트 ${wrong.size}문항</small></button>
-    <button class="mode" id="m-cx"><span class="mi">📖</span><b>진단명 도감</b><small>${codex.size} / ${QB.length} 수집</small></button>
+    <button class="mode main" id="m-lt"><span class="mi">⚡</span><b>각성 측정</b><small>${LT_N}문항 적응형 · 헌터 등급을 측정합니다</small></button>
+    <button class="mode" id="m-pr"><span class="mi">📋</span><b>일일 퀘스트</b><small>${dailyLabel()}</small></button>
+    <button class="mode" id="m-dj"><span class="mi">🌀</span><b>게이트 공략</b><small>${cleared} / ${DOMS.length} 클리어 ${S.dojo.final?"· S급 게이트 클리어":""}</small></button>
+    <button class="mode" id="m-rk"><span class="mi">🏆</span><b>헌터 랭킹</b><small>${S.nick?esc(S.nick)+"님의 순위 보기":"동료들과 기록 겨루기"}</small></button>
+    <button class="mode" id="m-ta"><span class="mi">⏱️</span><b>긴급 퀘스트</b><small>20문항 · 20초 · 최고 ${S.rec.ta}점</small></button>
+    <button class="mode" id="m-surv"><span class="mi">💀</span><b>던전 브레이크</b><small>하트 3개 · 최고 ${S.rec.surv}문제</small></button>
+    <button class="mode" id="m-rv" ${wrong.size?"":"disabled"}><span class="mi">⛓️</span><b>패널티 존</b><small>틀린 문제 ${wrong.size}개 수감 중</small></button>
+    <button class="mode" id="m-cx"><span class="mi">🌑</span><b>그림자 군단</b><small>${codex.size} / ${QB.length} 추출</small></button>
   </div>
   <div class="card small" id="acc-wrap">${accountCardHTML()}</div>
   <div class="card small">
-    <div class="stats"><div><b>${S.rec.tests}</b><small>레벨테스트</small></div><div><b>${cleared}</b><small>격파 관문</small></div><div><b>${unseen}</b><small>안 푼 문항</small></div><div><b>${Math.round(codex.size/QB.length*100)}%</b><small>도감 완성</small></div></div>
+    <div class="stats"><div><b>${S.rec.tests}</b><small>각성 측정</small></div><div><b>${cleared}</b><small>클리어 게이트</small></div><div><b>${unseen}</b><small>안 푼 문항</small></div><div><b>${Math.round(codex.size/QB.length*100)}%</b><small>그림자 추출</small></div></div>
     <details><summary>게임 규칙 보기</summary>
      <ul class="rules">
-      <li><b>레벨테스트:</b> ${LT_N}문항. 영역마다 중간 난이도(★★)로 시작해서, 맞히면 더 어려운 문제, 틀리면 쉬운 문제가 나와요. 어려운 문제일수록 점수 비중이 커요.</li>
-      <li><b>등급:</b> 레벨테스트 ${LT_CUT[1]}점↑ 수련준비생, ${LT_CUT[2]}점↑ 수련생, ${LT_CUT[3]}점↑ 전문요원. 다시 보면 최신 결과로 바뀌어요.</li>
-      <li><b>도장깨기:</b> 영역마다 ${DOJO_N}문제 중 ${DOJO_PASS}개를 맞히면 관문 격파. ${DOMS.length}관문을 다 깨면 최종 보스 '퇴사 시험'(${FINAL_N}문제 중 ${FINAL_PASS}개)에 도전할 수 있고, 통과하면 퇴사 등급이에요.</li>
-      <li><b>랭킹:</b> 처음 정한 닉네임으로 등급·도장깨기·타임어택·생존 기록이 동료들에게 공개돼요. 학습 기록(푼 문제·오답)은 공개되지 않아요.</li>
+      <li><b>각성 측정:</b> ${LT_N}문항. 영역마다 중간 난이도(★★)로 시작해서, 맞히면 더 어려운 문제, 틀리면 쉬운 문제가 나와요. 어려운 문제일수록 점수 비중이 커요.</li>
+      <li><b>헌터 등급:</b> 각성 측정 ${LT_CUT[1]}점↑ C급 수련준비생, ${LT_CUT[2]}점↑ B급 수련생, ${LT_CUT[3]}점↑ A급 전문요원. 다시 측정하면 최신 결과로 바뀌어요. S급(퇴사)은 S급 게이트를 넘어야 얻어요.</li>
+      <li><b>게이트 공략:</b> 영역마다 ${DOJO_N}문제 중 ${DOJO_PASS}개를 맞히면 게이트 클리어. ${DOMS.length}개를 다 깨면 S급 게이트 '퇴사'(${FINAL_N}문제 중 ${FINAL_PASS}개)가 열려요.</li><li><b>일일 퀘스트:</b> 하루 한 번 ${PR_N}문항을 끝내면 연속 달성 일수가 쌓여요.</li>
+      <li><b>헌터 랭킹:</b> 처음 정한 헌터명으로 등급·게이트·긴급 퀘스트·던전 브레이크 기록이 동료들에게 공개돼요. 학습 기록(푼 문제·오답)은 공개되지 않아요.</li>
       <li><b>모름</b>을 누르면 바로 정답과 해설을 볼 수 있어요. 찍는 것보다 정직하게 누르는 게 진짜 실력 확인에 좋아요.</li>
      </ul>
      <p class="muted">기록은 이 기기에 먼저 저장되고, 로그인이 되어 있으면 서버와 동기화돼요.</p>
@@ -208,7 +225,7 @@ function lobby(){
   goTop();
 }
 
-// ===================== 🎯 레벨테스트 =====================
+// ===================== ⚡ 각성 측정 =====================
 let G;
 function startLT(){
   const order=shuf(DOMS.slice()),cnt={};DOMS.forEach(d=>cnt[d]=2);
@@ -226,7 +243,7 @@ function pickLv(d,lv){
 function ltNext(){const d=G.plan[G.i];const id=pickLv(d,G.lv[d]);G.used.add(id);G.q=toQ(id,{noOX:true});ltQ()}
 function ltQ(){
   const q=G.q,n=G.plan.length;
-  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">🎯 레벨테스트</span><span class="muted">${G.i+1} / ${n}</span></div>
+  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">⚡ 각성 측정</span><span class="muted">${G.i+1} / ${n}</span></div>
     <div class="lpbar" style="max-width:none"><i style="width:${G.i/n*100}%"></i></div>
     <p class="muted" style="margin:6px 0 0">맞히면 다음 문제가 어려워져요. 모르면 찍지 말고 '모름'</p></div>`+
     qCard(q,q.r,{showLv:true,nextLabel:G.i===n-1?"결과 보기 🏁":"다음 →"});
@@ -242,12 +259,12 @@ function ltEnd(){
   S.level={t,score,date:today(),dom,hist};S.rec.tests++;save();
   const nt=curTier(),weak=Object.entries(dom).sort((a,b)=>a[1]-b[1]).slice(0,3).map(([k])=>k);
   const c=G.log.filter(x=>x.r==="ok").length,misses=G.log.filter(x=>x.r!=="ok");
-  const summary=`[레벨테스트 결과] ${tierName(nt)} · ${score}점${prev!=null?` (지난번 ${prev}점)`:""}\n정답 ${c}/${G.log.length}\n`+Object.entries(dom).sort((a,b)=>a[1]-b[1]).map(([k,v])=>`- ${k}: ${v}`).join("\n")+`\n약점: ${weak.join(", ")}`;
+  const summary=`[각성 측정 결과] ${tierName(nt)} · ${score}점${prev!=null?` (지난번 ${prev}점)`:""}\n정답 ${c}/${G.log.length}\n`+Object.entries(dom).sort((a,b)=>a[1]-b[1]).map(([k,v])=>`- ${k}: ${v}`).join("\n")+`\n약점: ${weak.join(", ")}`;
   app.innerHTML=`<div class="card hero ${nt>prevT?"celebrate":""}">
     ${emblem(nt,110)}<h1>${tierName(nt)}</h1>
     <div class="lvbig">${score}점${prev!=null?` <span style="font-size:1rem;color:${score>=prev?"var(--ok)":"var(--ng)"}">(${score>=prev?"+":""}${score-prev})</span>`:""}</div>
     <p class="muted">정답 ${c} / ${G.log.length} · 어려운 문제일수록 점수 비중이 커요</p>
-    ${nt===CAP&&!S.dojo.final?`<p class="muted">🏖️ 퇴사 등급은 도장깨기 최종 보스로만 얻을 수 있어요</p>`:""}
+    ${nt===CAP&&!S.dojo.final?`<p class="muted">🏖️ S급(퇴사)은 S급 게이트를 넘어야만 얻을 수 있어요</p>`:""}
     ${t<CAP?`<p class="muted">다음 등급(${TIERS[t+1].n})까지 ${LT_CUT[t+1]-score}점</p>`:""}
   </div>
   <div class="card"><b>영역별 실력 (약한 순)</b>${domBars(dom)}</div>
@@ -258,19 +275,20 @@ function ltEnd(){
    <div class="nav" style="justify-content:flex-start;gap:8px;flex-wrap:wrap"><button class="btn" id="cp">결과 복사</button><button class="btn ghost" id="lb">로비로</button></div></div>`;
   on("cp",async e=>{try{await navigator.clipboard.writeText(summary);e.target.textContent="복사됐어요 ✓"}catch(_){e.target.textContent="위 텍스트를 직접 복사해 주세요"}});
   on("lb",lobby);app.querySelectorAll("[data-pr]").forEach(b=>b.onclick=()=>startPractice(b.dataset.pr));
-  if(nt>prevT)for(let k=0;k<3;k++)setTimeout(()=>floatText(["🎉","✨","⬆️"][k]+" "+TIERS[nt].n+"!","#ffc94d"),k*350);
+  if(prevT<0)setTimeout(()=>systemMsg([`각성 측정이 완료되었습니다.`,`당신의 등급: ${tierName(nt)}`,"약점 영역부터 일일 퀘스트로 단련하세요."],"각성"),400);
+  else if(nt>prevT)setTimeout(()=>systemMsg([`등급이 상승했습니다.`,`${tierName(prevT)} → ${tierName(nt)}`,nt===CAP?"S급 게이트에 도전할 자격을 얻으려면 게이트를 모두 클리어하세요.":"다음 등급까지 계속 성장하세요."],"레벨 업"),400);
   goTop();
 }
 
 // ===================== 📝 일반 모드 =====================
 function practiceMenu(){
   stopAll();const dom=S.level.dom||{},weak=Object.entries(dom).sort((a,b)=>a[1]-b[1]).slice(0,3).map(([k])=>k);
-  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">📝 일반 모드</span><span class="muted">영역을 골라 ${PR_N}문항씩</span></div>
-   <p class="muted" style="margin:6px 0 0">틀린 문제 → 안 푼 문제 순서로 나와요. 등급에는 영향이 없어요.</p></div>
+  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">📋 일일 퀘스트</span><span class="muted">${dailyLabel()}</span></div>
+   <p class="muted" style="margin:6px 0 0">[퀘스트] 영역을 골라 ${PR_N}문항을 완료하세요. 틀린 문제 → 안 푼 문제 순서로 나와요.</p></div>
    <div class="modes">
     <button class="mode" data-pm="all"><span class="mi">🎲</span><b>전체 섞기</b><small>모든 영역에서</small></button>
     ${weak.length?`<button class="mode" data-pm="weak"><span class="mi">🎯</span><b>약점 집중</b><small>${weak.join(", ")}</small></button>`:""}
-    ${DOMS.map(d=>{const ids=idsOf(d),got=ids.filter(i=>codex.has(i)).length;return `<button class="mode" data-pm="${esc(d)}"><span class="mi">${BOSS[d].e}</span><b>${d}</b><small>${ids.length}문항 · 도감 ${got}${dom[d]!=null?` · 실력 ${dom[d]}`:""}</small></button>`}).join("")}
+    ${DOMS.map(d=>{const ids=idsOf(d),got=ids.filter(i=>codex.has(i)).length;return `<button class="mode" data-pm="${esc(d)}"><span class="mi">${BOSS[d].e}</span><b>${d}</b><small>${ids.length}문항 · 그림자 ${got}${dom[d]!=null?` · 실력 ${dom[d]}`:""}</small></button>`}).join("")}
    </div><div class="nav" style="justify-content:center"><button class="btn ghost" id="lb">로비로</button></div>`;
   on("lb",lobby);app.querySelectorAll("[data-pm]").forEach(b=>b.onclick=()=>startPractice(b.dataset.pm));goTop();
 }
@@ -283,28 +301,29 @@ function startPractice(sel){
 }
 function prQ(){
   const q=G.qs[G.i];
-  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">📝 ${esc(G.label)}</span><span class="muted">${G.i+1} / ${G.qs.length}</span></div>
+  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">📋 ${esc(G.label)}</span><span class="muted">${G.i+1} / ${G.qs.length}</span></div>
     <div class="pips">${G.qs.map((x,k)=>`<span class="${x.r==="ok"?"ok":x.r?"ng":k===G.i?"now":""}">${x.r==="ok"?"✔":x.r?"✖":k+1}</span>`).join("")}</div></div>`+
     qCard(q,q.r,{showLv:true,nextLabel:G.i===G.qs.length-1?"결과 보기":"다음 →"});
   bindQ(k=>{q.pick=k;q.r=judge(q,k);if(q.r!=="ok")shake();prQ()},()=>{if(G.i===G.qs.length-1)prEnd();else{G.i++;prQ();goTop()}});
 }
 function prEnd(){
-  const c=G.qs.filter(q=>q.r==="ok").length,miss=G.qs.filter(q=>q.r!=="ok");
-  app.innerHTML=`<div class="card hero"><div style="font-size:3rem">${c>=8?"🔥":c>=5?"👍":"💪"}</div><h1>${c} / ${G.qs.length}</h1><p class="muted">${esc(G.label)} 연습 완료</p>
-   <div class="nav" style="justify-content:center;gap:8px;flex-wrap:wrap"><button class="btn" id="again">한 세트 더</button><button class="btn ghost" id="pm">다른 영역</button><button class="btn ghost" id="lb">로비로</button></div></div>
+  const c=G.qs.filter(q=>q.r==="ok").length,miss=G.qs.filter(q=>q.r!=="ok"),streak=completeDaily();
+  app.innerHTML=`<div class="card hero"><div style="font-size:3rem">${c>=8?"🔥":c>=5?"👍":"💪"}</div><h1>${c} / ${G.qs.length}</h1><p class="muted">${esc(G.label)} 퀘스트 완료</p>
+   <div class="nav" style="justify-content:center;gap:8px;flex-wrap:wrap"><button class="btn" id="again">한 세트 더</button><button class="btn ghost" id="pm">다른 퀘스트</button><button class="btn ghost" id="lb">로비로</button></div></div>
    ${miss.length?`<div class="card"><b>다시 볼 문제</b>${miss.map(q=>`<div class="wrong">${esc(q.q)}<br><span class="a">정답: ${esc(q.o[q.a])}</span><br><span class="muted">${esc(q.e)}</span></div>`).join("")}</div>`:""}`;
   on("again",()=>startPractice(G.sel));on("pm",practiceMenu);on("lb",lobby);goTop();
+  if(streak)systemMsg([`일일 퀘스트를 완료했습니다.`,`연속 달성 ${streak}일째.`,streak>=7?"꾸준함이 레벨을 만듭니다.":"내일도 접속하면 연속 기록이 이어집니다."],"퀘스트 완료");
 }
 
 // ===================== 🏯 도장깨기 =====================
 function dojoMap(){
   stopAll();const cl=new Set(S.dojo.cleared),all=cl.size===DOMS.length;
-  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">🏯 도장깨기</span><span class="muted">${cl.size} / ${DOMS.length} 격파</span></div>
+  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">🌀 게이트 공략</span><span class="muted">${cl.size} / ${DOMS.length} 클리어</span></div>
     <div class="lpbar" style="max-width:none"><i style="width:${cl.size/DOMS.length*100}%"></i></div>
-    <p class="muted" style="margin:6px 0 0">관문마다 ${DOJO_N}문제 중 ${DOJO_PASS}개를 맞히면 격파. 3개 틀리면 그 자리에서 탈락이에요.</p></div>
-   <div class="gates">${DOMS.map(d=>{const b=BOSS[d],ok=cl.has(d),best=(S.dojo.best||{})[d];return `<button class="gate ${ok?"clear":""}" data-dj="${esc(d)}"><span class="ge">${b.e}</span><b>${b.n}</b><small>${d}</small><small>${ok?"✅ 격파":best!=null?`최고 ${best}/${DOJO_N}`:"도전 전"}</small></button>`}).join("")}</div>
-   <div class="card finalboss ${all?"open":""}"><div style="font-size:2.6rem">🏖️</div><b>최종 보스: 퇴사 시험</b>
-     <p class="muted">${S.dojo.final?"이미 격파했어요. 축하해요, 퇴사입니다 🎉":all?`전 영역 ${FINAL_N}문제 중 ${FINAL_PASS}개를 맞히면 퇴사 등급!`:`${DOMS.length}관문을 모두 깨면 열려요 (${DOMS.length-cl.size}개 남음)`}</p>
+    <p class="muted" style="margin:6px 0 0">게이트마다 ${DOJO_N}문제 중 ${DOJO_PASS}개를 맞히면 클리어. 3번 틀리면 공략 실패예요.</p></div>
+   <div class="gates">${DOMS.map(d=>{const b=BOSS[d],ok=cl.has(d),best=(S.dojo.best||{})[d];return `<button class="gate ${ok?"clear":""}" data-dj="${esc(d)}"><span class="ge">${b.e}</span><b>${b.n}</b><small>${d}</small><small>${ok?"✅ 클리어":best!=null?`최고 ${best}/${DOJO_N}`:"도전 전"}</small></button>`}).join("")}</div>
+   <div class="card finalboss ${all?"open":""}"><div style="font-size:2.6rem">🏖️</div><b>S급 게이트: 퇴사</b>
+     <p class="muted">${S.dojo.final?"이미 클리어했어요. 원래 세계로 귀환 완료 🏖️":all?`전 영역 ${FINAL_N}문제 중 ${FINAL_PASS}개를 맞히면 퇴사 등급!`:`게이트 ${DOMS.length}개를 모두 클리어하면 열려요 (${DOMS.length-cl.size}개 남음)`}</p>
      ${all?`<button class="btn promo-btn" id="final">${S.dojo.final?"다시 도전":"도전하기"}</button>`:""}</div>
    <div class="nav" style="justify-content:center"><button class="btn ghost" id="lb">로비로</button></div>`;
   on("lb",lobby);on("final",startFinal);app.querySelectorAll("[data-dj]").forEach(b=>b.onclick=()=>startDojo(b.dataset.dj));goTop();
@@ -312,7 +331,7 @@ function dojoMap(){
 function startDojo(d){G={mode:"dj",d,qs:pickIds(idsOf(d),DOJO_N).map(toQ),i:0,ok:0,ng:0,pass:DOJO_PASS,fail:DOJO_N-DOJO_PASS+1,boss:BOSS[d]};djQ()}
 function startFinal(){
   const per=Math.ceil(FINAL_N/DOMS.length),ids=[];DOMS.forEach(d=>pickIds(idsOf(d),per).forEach(i=>ids.push(i)));
-  G={mode:"fin",d:"전 영역",qs:shuf(ids).slice(0,FINAL_N).map(i=>toQ(i,{noOX:true})),i:0,ok:0,ng:0,pass:FINAL_PASS,fail:FINAL_N-FINAL_PASS+1,boss:{e:"🏖️",n:"퇴사 시험"}};djQ();
+  G={mode:"fin",d:"전 영역",qs:shuf(ids).slice(0,FINAL_N).map(i=>toQ(i,{noOX:true})),i:0,ok:0,ng:0,pass:FINAL_PASS,fail:FINAL_N-FINAL_PASS+1,boss:{e:"🏖️",n:"S급 게이트: 퇴사"}};djQ();
 }
 function djQ(hit){
   const q=G.qs[G.i],hp=Math.max(0,100-Math.round(G.ok/G.pass*100));
@@ -332,27 +351,27 @@ function djEnd(){
   const all=S.dojo.cleared.length===DOMS.length;
   app.innerHTML=`<div class="card hero ${win?"celebrate":""}">
     ${fin&&win?emblem(TOP,120):`<div style="font-size:3.4rem">${win?"💥":"💀"}</div>`}
-    <h1>${fin?(win?"퇴사 시험 통과! 🏖️":"퇴사는 아직…"):(win?`${G.boss.n} 격파!`:"관문 돌파 실패")}</h1>
+    <h1>${fin?(win?"S급 게이트 클리어! 🏖️":"아직 귀환할 수 없습니다…"):(win?`${G.boss.n} 처치!`:"게이트 공략 실패")}</h1>
     <p>${G.ok}개 정답 · ${G.ng}개 오답</p>
-    <p class="muted">${fin?(win?(wasFinal?"다시 한 번 증명했어요.":"최고 등급 '퇴사'를 얻었어요. 고생 많았어요!"):`${FINAL_PASS}개를 맞혀야 해요. 약한 영역을 일반 모드로 다지고 다시 와요.`):(win?(all?`${DOMS.length}관문을 모두 깼어요!`+" 최종 보스가 열렸어요.":"도장깨기 지도에 격파 표시가 생겼어요."):"일반 모드에서 이 영역을 연습하고 다시 도전해 보세요.")}</p>
+    <p class="muted">${fin?(win?(wasFinal?"다시 한 번 증명했어요.":"S급 헌터 '퇴사' 달성. 원래 세계로 귀환합니다. 고생 많았어요!"):`${FINAL_PASS}개를 맞혀야 해요. 약한 영역을 일반 모드로 다지고 다시 와요.`):(win?(all?`게이트 ${DOMS.length}개를 모두 클리어했어요!`+" S급 게이트가 열렸어요.":"게이트 지도에 클리어 표시가 생겼어요."):"일일 퀘스트로 이 영역을 단련하고 다시 도전해 보세요.")}</p>
     <div class="nav" style="justify-content:center;gap:8px;flex-wrap:wrap">
-     ${!win&&!fin?`<button class="btn" id="pr">이 영역 연습하기</button>`:""}<button class="btn ${win?"":"ghost"}" id="map">도장깨기 지도</button><button class="btn ghost" id="lb">로비로</button></div></div>`;
+     ${!win&&!fin?`<button class="btn" id="pr">이 영역 단련하기</button>`:""}<button class="btn ${win?"":"ghost"}" id="map">게이트 지도</button><button class="btn ghost" id="lb">로비로</button></div></div>`;
   on("pr",()=>startPractice(G.d));on("map",dojoMap);on("lb",lobby);
-  if(win)for(let k=0;k<3;k++)setTimeout(()=>floatText(["🎉","💥","✨"][k],"#ffc94d"),k*300);
+  if(win)setTimeout(()=>systemMsg(fin?["S급 게이트를 클리어했습니다.","등급이 S급 '퇴사'로 상승했습니다.","원래 세계로 귀환합니다. 🏖️"]:[`게이트를 클리어했습니다: ${G.boss.n}`,all?"모든 게이트를 클리어했습니다. S급 게이트가 열립니다.":`남은 게이트 ${DOMS.length-S.dojo.cleared.length}개`],fin?"레벨 업":"게이트 클리어"),300);
   goTop();
 }
 
 // ===================== 🏷️ 닉네임 정하기 =====================
 function nickSetup(change){
   stopAll();
-  app.innerHTML=`<div class="card hero"><div style="font-size:3rem">🏷️</div><h1>${change?"닉네임 바꾸기":"닉네임을 정해 주세요"}</h1>
-    <p class="muted">랭킹에 이 닉네임으로 기록이 남아요. 실명 대신 별명을 추천해요.</p>
+  app.innerHTML=`<div class="card hero"><div style="font-size:3rem">🏷️</div><div class="systag">[시스템]</div><h1>${change?"헌터명 변경":"플레이어로 선택되었습니다"}</h1>
+    <p class="muted">${change?"헌터 랭킹에 표시될 이름을 바꿉니다.":"헌터명을 등록하세요. 헌터 랭킹에 이 이름으로 기록이 남아요. 실명 대신 별명을 추천해요."}</p>
     <input id="nick" maxlength="12" value="${esc(S.nick)}" placeholder="예: 수련왕, 퇴사가꿈" autocomplete="off">
     <p class="muted" style="font-size:.8rem">한글·영문·숫자·밑줄(_) 2~12자 · 다른 사람과 겹칠 수 없어요</p>
     <p class="warn" id="nmsg"></p>
-    <div class="nav" style="justify-content:center;gap:8px"><button class="btn big" id="nsave">${change?"바꾸기":"시작하기"}</button>${change?`<button class="btn ghost" id="lb">취소</button>`:""}</div></div>`;
+    <div class="nav" style="justify-content:center;gap:8px"><button class="btn big" id="nsave">${change?"변경":"등록"}</button>${change?`<button class="btn ghost" id="lb">취소</button>`:""}</div></div>`;
   const go=async e=>{const v=document.getElementById("nick").value.trim();e&&e.target&&(e.target.disabled=true);const r=await claimNick(v);
-    if(r==="ok"){floatText(`👋 ${v}님!`,"#ffc94d");lobby()}else{document.getElementById("nmsg").textContent=r;const b=document.getElementById("nsave");if(b)b.disabled=false}};
+    if(r==="ok"){lobby();systemMsg(change?[`헌터명이 '${v}'(으)로 변경되었습니다.`]:[`플레이어 등록이 완료되었습니다.`,`환영합니다, ${v} 헌터님.`,`각성 측정으로 등급을 확인하세요.`])}else{document.getElementById("nmsg").textContent=r;const b=document.getElementById("nsave");if(b)b.disabled=false}};
   on("nsave",go);on("lb",lobby);
   document.getElementById("nick").addEventListener("keydown",e=>{if(e.key==="Enter")go()});
   goTop();
@@ -360,14 +379,14 @@ function nickSetup(change){
 
 // ===================== 🏆 랭킹 =====================
 const RANK_TABS=[{k:"rk",n:"등급",f:r=>r.score<0?"-":`${TIERS[r.tier]?TIERS[r.tier].e:""} ${tierName(r.tier)} · ${r.score}점`},
- {k:"dk",n:"도장깨기",f:r=>r.final?"🏖️ 퇴사 완료":`${r.dojo} / ${DOMS.length} 관문`},
- {k:"ta",n:"타임어택",f:r=>`${r.ta}점`},{k:"surv",n:"생존",f:r=>`${r.surv}문제`}];
+ {k:"dk",n:"게이트",f:r=>r.final?"🏖️ S급 게이트 클리어":`${r.dojo} / ${DOMS.length} 게이트`},
+ {k:"ta",n:"긴급",f:r=>`${r.ta}점`},{k:"surv",n:"브레이크",f:r=>`${r.surv}문제`}];
 async function rankingView(tab){
   stopAll();tab=tab||"rk";
-  if(!ACC.ready){app.innerHTML=`<div class="card hero"><div style="font-size:3rem">🏆</div><h1>랭킹</h1><p class="muted">${ACC.err?esc(ACC.err):"서버에 연결하는 중이에요. 잠시 후 다시 눌러주세요."}</p><button class="btn ghost" id="lb">로비로</button></div>`;on("lb",lobby);return}
+  if(!ACC.ready){app.innerHTML=`<div class="card hero"><div style="font-size:3rem">🏆</div><h1>헌터 랭킹</h1><p class="muted">${ACC.err?esc(ACC.err):"서버에 연결하는 중이에요. 잠시 후 다시 눌러주세요."}</p><button class="btn ghost" id="lb">로비로</button></div>`;on("lb",lobby);return}
   if(!S.nick)return nickSetup();
   const T=RANK_TABS.find(x=>x.k===tab);
-  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">🏆 랭킹</span><span class="muted">나: ${esc(S.nick)}</span></div>
+  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">🏆 헌터 랭킹</span><span class="muted">나: ${esc(S.nick)}</span></div>
     <div class="tabs">${RANK_TABS.map(x=>`<button class="tab ${x.k===tab?"on":""}" data-tab="${x.k}">${x.n}</button>`).join("")}</div></div>
     <div class="card" id="rlist"><p class="muted">불러오는 중…</p></div>
     <div class="nav" style="justify-content:center"><button class="btn ghost" id="lb">로비로</button></div>`;
@@ -379,7 +398,7 @@ async function rankingView(tab){
   document.getElementById("rlist").innerHTML=(rows.length?rows.map((r,i)=>`<div class="rrow ${r.uid===me?"me":""}"><span class="rno">${medal(i)}</span><span class="rnick">${esc(r.nick)}</span><span class="rval">${T.f(r)}</span></div>`).join("")
     :`<p class="muted">아직 기록이 없어요. 첫 기록의 주인공이 되어 보세요!</p>`)+
     (mine<0&&rows.length>=50?`<p class="muted" style="margin-top:10px">내 기록은 50위 밖이에요.</p>`:"")+
-    (tab==="rk"&&S.level.score==null?`<p class="muted" style="margin-top:10px">레벨테스트를 보면 등급 랭킹에 올라가요.</p>`:"");
+    (tab==="rk"&&S.level.score==null?`<p class="muted" style="margin-top:10px">각성 측정을 하면 등급 랭킹에 올라가요.</p>`:"");
 }
 
 // ===================== ❤️ 생존 모드 =====================
@@ -403,7 +422,7 @@ function survNext(){
 }
 function survOver(){
   const rec=G.score>S.rec.surv;if(rec){S.rec.surv=G.score;save()}
-  app.innerHTML=`<div class="card hero"><div style="font-size:3.4rem">💀</div><h1>게임 오버</h1>
+  app.innerHTML=`<div class="card hero"><div style="font-size:3.4rem">💀</div><h1>던전 브레이크 종료</h1>
    <p><b style="font-size:1.6rem;color:var(--ink)">${G.score}문제</b> 버텼어요${rec?" · <b style='color:var(--gold)'>신기록!</b>":` (최고 ${S.rec.surv})`}</p>
    <div class="nav" style="justify-content:center;gap:8px;flex-wrap:wrap">
     ${G.revive?`<button class="btn promo-btn" id="rv">💖 부활하기 (하트 1개)</button>`:""}
@@ -411,7 +430,7 @@ function survOver(){
   on("rv",()=>{G.revive--;G.hearts=1;survNext()});on("again",startSurv);on("lb",lobby);goTop();
 }
 
-// ===================== ⏱️ 타임어택 =====================
+// ===================== ⏱️ 긴급 퀘스트 =====================
 const TA_N=20,TA_SEC=20;
 function startTA(){G={mode:"ta",qs:pickIds(ALL,TA_N).map(toQ),i:0,score:0,ok:0,left:TA_SEC};taQ(true)}
 function taQ(fresh){
@@ -444,21 +463,21 @@ function taEnd(){
 function startReview(){const ids=shuf([...wrong]).slice(0,25);if(!ids.length)return lobby();G={mode:"rv",qs:ids.map(toQ),i:0};rvQ()}
 function rvQ(){
   const q=G.qs[G.i];
-  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">📕 오답 복습</span><span class="muted">${G.i+1} / ${G.qs.length} · 맞히면 졸업</span></div></div>`+qCard(q,q.r,{showLv:true,nextLabel:G.i===G.qs.length-1?"결과 보기":"다음 →",gain:q.r==="ok"?"🎓 졸업!":""});
+  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">⛓️ 패널티 존</span><span class="muted">${G.i+1} / ${G.qs.length} · 맞히면 탈출</span></div></div>`+qCard(q,q.r,{showLv:true,nextLabel:G.i===G.qs.length-1?"결과 보기":"다음 →",gain:q.r==="ok"?"🔓 탈출!":""});
   bindQ(k=>{q.pick=k;q.r=judge(q,k);rvQ()},()=>{if(G.i===G.qs.length-1)rvEnd();else{G.i++;rvQ();goTop()}});
 }
 function rvEnd(){
   const g=G.qs.filter(q=>q.r==="ok").length;
-  app.innerHTML=`<div class="card hero"><div style="font-size:3.4rem">🎓</div><h1>${g}문항 졸업</h1><p>${G.qs.length}문항 중 ${g}개를 맞혀 오답노트에서 뺐어요. 남은 오답노트 ${wrong.size}문항.</p>
-   <div class="nav" style="justify-content:center;gap:8px">${wrong.size?`<button class="btn" id="again">한 번 더 복습</button>`:""}<button class="btn ghost" id="lb">로비로</button></div></div>`;
+  app.innerHTML=`<div class="card hero"><div style="font-size:3.4rem">🔓</div><h1>${g}문제 탈출</h1><p>${G.qs.length}문제 중 ${g}개를 맞혀 패널티 존에서 풀려났어요. 남은 수감 ${wrong.size}문제.</p>
+   <div class="nav" style="justify-content:center;gap:8px">${wrong.size?`<button class="btn" id="again">한 번 더</button>`:""}<button class="btn ghost" id="lb">로비로</button></div></div>`;
   on("again",startReview);on("lb",lobby);goTop();
 }
 
 // ===================== 📖 도감 =====================
 function showCodex(){
-  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">📖 진단명 도감</span><span class="score">${codex.size} / ${QB.length}</span></div>
-   <div class="lpbar" style="max-width:none"><i style="width:${codex.size/QB.length*100}%"></i></div><p class="muted" style="margin:6px 0 0">문제를 맞히면 카드가 열려요. 열린 카드를 누르면 해설을 다시 볼 수 있어요.</p></div>
-   ${DOMS.map(d=>{const ids=idsOf(d),got=ids.filter(i=>codex.has(i)).length;return `<div class="card"><div class="cxhead"><span>${BOSS[d].e} <b>${d}</b></span><span class="muted">${got}/${ids.length}${got===ids.length?" · 🏅 완성":""}</span></div>
+  app.innerHTML=`<div class="arena"><div class="plrow"><span class="score">🌑 그림자 군단</span><span class="score">${codex.size} / ${QB.length}</span></div>
+   <div class="lpbar" style="max-width:none"><i style="width:${codex.size/QB.length*100}%"></i></div><p class="muted" style="margin:6px 0 0">문제를 맞히면 그림자를 추출해 군단에 합류시켜요. 그림자를 누르면 해설을 다시 볼 수 있어요.</p></div>
+   ${DOMS.map(d=>{const ids=idsOf(d),got=ids.filter(i=>codex.has(i)).length;return `<div class="card"><div class="cxhead"><span>${BOSS[d].e} <b>${d}</b></span><span class="muted">${got}/${ids.length}${got===ids.length?" · 👑 군단 완성":""}</span></div>
      <div class="cards">${ids.map(i=>codex.has(i)?`<button class="cx on" data-i="${i}">${esc(QB[i].a.length>26?QB[i].a.slice(0,25)+"…":QB[i].a)}</button>`:`<span class="cx">?</span>`).join("")}</div></div>`}).join("")}
    <div id="modal"></div><div class="nav" style="justify-content:center"><button class="btn ghost" id="lb">로비로</button></div>`;
   on("lb",lobby);
